@@ -39,10 +39,10 @@ type Check interface {
 	Status() Status
 }
 
-type Checks []Check
+type CheckGroups map[string][]Check
 
 type baseCheck struct {
-	group  string
+	group  string  // TODO: rename group to chain/suite/line to avoid clashing with file group
 	name   string
 	status Status
 	result Result
@@ -72,8 +72,8 @@ type CheckFile struct {
 	uid      int32 // -1 to skip
 	gid      int32 // -1 to skip
 	absent   bool
-	minSize  int32 // -1 to skip
-	maxSize  int64 // -1 to skip
+	minSize  int32 // -1 to sktip
+	maxSize  int64 // 0 to skip
 }
 
 // NewCheckFile returns a new checkFile without a uid/gid/size checks

@@ -1,0 +1,36 @@
+---
+
+runners:
+  default:
+    max_running: 3
+    timeout: 5m
+
+checks:
+  etc:
+    - type: dir
+      path: /etc
+      mode: 0755
+      user: root
+      group: root
+    - type: file
+      path: /etc/passwd
+      min_size: 10
+    - type: file
+      path: /etc/group
+      min_size: 5
+      max_size: 10
+  default:
+    - type: file
+      path: /unwanted/file
+      absent: true
+    - type: dial
+      network: tcp
+      address: "localhost:8080"
+      absent: true
+      timeout: 500ms
+    - type: dial
+      network: tcp
+      address: "localhost:80"
+      timeout: 500ms
+
+...
