@@ -8,11 +8,11 @@ import (
 )
 
 type ConfRunners map[string]ConfRunner
-type ConfCheckSpecGroups map[string][]ConfCheckSpec
+type ConfCheckSpecSuites map[string][]ConfCheckSpec
 
 type Conf struct {
 	Runners ConfRunners
-	Checks  ConfCheckSpecGroups
+	Checks  ConfCheckSpecSuites
 }
 
 type ConfRunner struct {

@@ -20,8 +20,8 @@ func TestCheckFile(t *testing.T) {
 	if gotStatus = check.Status(); gotStatus != wantStatus {
 		t.Errorf("invalid check dial status, want %v got %v", wantStatus, gotStatus)
 	}
-	if got = check.Group(); got != want {
-		t.Errorf("invalid check file group, want empty got %v", got)
+	if got = check.Suite(); got != want {
+		t.Errorf("invalid check file suite, want empty got %v", got)
 	}
 	want = "any:/no/such/path/exists"
 	if got = check.Name(); got != want {
@@ -155,8 +155,8 @@ func TestCheckDial(t *testing.T) {
 	var check *CheckDial
 	var got, want string
 	check = NewCheckDial()
-	if got = check.Group(); got != want {
-		t.Errorf("invalid check dial group, want empty got %v", got)
+	if got = check.Suite(); got != want {
+		t.Errorf("invalid check dial suite, want empty got %v", got)
 	}
 	want = "tcp:127.0.0.1:80"
 	if got = check.Name(); got != want {

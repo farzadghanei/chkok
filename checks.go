@@ -32,24 +32,24 @@ type Result struct {
 }
 
 type Check interface {
-	Group() string
+	Suite() string
 	Name() string
 	Run() Result
 	Result() Result
 	Status() Status
 }
 
-type CheckGroups map[string][]Check
+type CheckSuites map[string][]Check
 
 type baseCheck struct {
-	group  string  // TODO: rename group to chain/suite/line to avoid clashing with file group
+	suite  string
 	name   string
 	status Status
 	result Result
 }
 
-func (bc *baseCheck) Group() string {
-	return bc.group
+func (bc *baseCheck) Suite() string {
+	return bc.suite
 }
 
 func (bc *baseCheck) Name() string {
