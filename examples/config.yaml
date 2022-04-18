@@ -5,7 +5,7 @@ runners:
     max_running: 3
     timeout: 5m
 
-checks:
+check_suites:
   etc:
     - type: dir
       path: /etc

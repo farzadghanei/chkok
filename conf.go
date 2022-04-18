@@ -11,8 +11,8 @@ type ConfRunners map[string]ConfRunner
 type ConfCheckSpecSuites map[string][]ConfCheckSpec
 
 type Conf struct {
-	Runners ConfRunners
-	Checks  ConfCheckSpecSuites
+	Runners     ConfRunners
+	CheckSuites ConfCheckSpecSuites `yaml:"check_suites"`
 }
 
 type ConfRunner struct {
@@ -26,7 +26,7 @@ type ConfCheckSpec struct {
 	Mode    *uint32
 	User    *string
 	Group   *string
-	MinSize int32 `yaml:"min_size"`
+	MinSize int32  `yaml:"min_size"`
 	MaxSize *int64 `yaml:"max_size"`
 	Absent  bool
 	Network string
