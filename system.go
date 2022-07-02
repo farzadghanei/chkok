@@ -5,18 +5,26 @@ import (
 	"strconv"
 )
 
+// ExOK exit code for successful run
+const ExOK = 0
 
-const EX_OK = 0
-const EX_DATAERR = 65
-const EX_SOFTWARE = 70
-const EX_NOINPUT = 72
-const EX_IOERR = 74
-const EX_TEMPFAIL = 75
-const EX_CONFIG = 78
+// ExDataErr exit code for invalid data
+const ExDataErr = 65
 
+// ExSoftware generic failure exit code
+const ExSoftware = 70
 
-// getUid returns uid of the specified username, if user doesn't exist, but name is numeric, it's assumed the uid
-func getUid(name string) (int, error) {
+// ExNoInput exit code for when no input provided
+const ExNoInput = 72
+
+// ExTempFail exit code when a runtime error
+const ExTempFail = 75
+
+// ExConfig exit code when invlaid configurations
+const ExConfig = 78
+
+// getUID returns uid of the specified username, if user doesn't exist, but name is numeric, it's assumed the uid
+func getUID(name string) (int, error) {
 	var uid int
 	var uidstr string
 	user, err := user.Lookup(name)
@@ -29,8 +37,8 @@ func getUid(name string) (int, error) {
 	return uid, err
 }
 
-// getGid returns gid of the specified group, if gropu doesn't exist, but name is numeric, it's assumed the gid
-func getGid(name string) (int, error) {
+// getGID returns gid of the specified group, if gropu doesn't exist, but name is numeric, it's assumed the gid
+func getGID(name string) (int, error) {
 	var gid int
 	var gidstr string
 	group, err := user.LookupGroup(name)

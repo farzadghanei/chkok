@@ -15,26 +15,25 @@ func main() {
 	conf, err := chkok.ReadConf(*confPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "couldn't read YAML configuration file: %v", err)
-		os.Exit(chkok.EX_DATAERR)
+		os.Exit(chkok.ExDataErr)
 	}
 	checkGroups, err := chkok.CheckSuitesFromSpecSuites(conf.CheckSuites)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "invalid configurations: %v", err)
-		os.Exit(chkok.EX_CONFIG)
+		os.Exit(chkok.ExConfig)
 	}
 	checks := chkok.RunChecks(checkGroups, int(conf.Runners["default"].MaxRunning), conf.Runners["default"].Timeout)
 	incompeleteChecks := 0
 	for _, chk := range checks {
 		if chk.Status() != chkok.StatusDone {
-			incompeleteChecks += 1
+			incompeleteChecks++
 		}
 		fmt.Printf("check %s status %d result: %v\n", chk.Name(), chk.Status(), chk.Result().IsOK)
 	}
 	if incompeleteChecks > 0 {
 		fmt.Fprintf(os.Stderr, "%v checks didn't get to completion", incompeleteChecks)
-		os.Exit(chkok.EX_TEMPFAIL)
+		os.Exit(chkok.ExTempFail)
 	}
 	fmt.Fprintf(os.Stderr, "all checks are done!")
-	os.Exit(chkok.EX_OK)
+	os.Exit(chkok.ExOK)
 }
-

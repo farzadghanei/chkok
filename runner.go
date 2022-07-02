@@ -7,6 +7,7 @@ import (
 	"github.com/panjf2000/ants/v2"
 )
 
+// RunChecks runs all the checks in the suite and returns slice of check
 func RunChecks(suites CheckSuites, poolSize int, timeout time.Duration) []Check {
 	var now, deadline time.Time
 	deadline = time.Now().Add(timeout)
@@ -31,7 +32,9 @@ func RunChecks(suites CheckSuites, poolSize int, timeout time.Duration) []Check 
 			defer wg.Done()
 			chk.Run()
 		}
-		pool.Submit(task)
+		if err := pool.Submit(task); err != nil {
+			panic(err)
+		}
 	}
 	wg.Wait()
 	return checks

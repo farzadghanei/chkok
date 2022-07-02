@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-const UNAVAILABLE_UID = 10375 // hopefully this won't be the uid on the running host
-const UNAVAILABLE_GID = 10375 // hopefully this won't be the gid on the running host
-const UNAVAILABLE_PORT = 1023 // hopefully this port is not open on the running host
+const UnavailableUID = 10375 // hopefully this won't be the uid on the running host
+const UnavailableGID = 10375 // hopefully this won't be the gid on the running host
+const UnavailablePort = 1023 // hopefully this port is not open on the running host
 
 func TestCheckFile(t *testing.T) {
 	var check *CheckFile
@@ -34,9 +34,8 @@ func TestCheckFile(t *testing.T) {
 	}
 }
 
-func TestCheckFileFiles(t *testing.T) {
+func TestCheckFileAbsentFiles(t *testing.T) {
 	var check *CheckFile
-	var got Result
 	var gotStatus, wantStatus Status
 	wantStatus = StatusDone
 	check = NewCheckFile("/no/such/path/exists")
@@ -55,6 +54,14 @@ func TestCheckFileFiles(t *testing.T) {
 	if gotStatus = check.Status(); gotStatus != wantStatus {
 		t.Errorf("invalid check file status, want %v got %v", wantStatus, gotStatus)
 	}
+}
+
+//gocyclo:ignore
+func TestCheckFileExistingFiles(t *testing.T) {
+	var check *CheckFile
+	var got Result
+	var gotStatus, wantStatus Status
+	wantStatus = StatusDone
 
 	check = NewCheckFile("LICENSE")
 	if got = check.Run(); !got.IsOK {
@@ -66,7 +73,7 @@ func TestCheckFileFiles(t *testing.T) {
 		t.Errorf("invalid check file status, want %v got %v", wantStatus, gotStatus)
 	}
 
-	check.uid = UNAVAILABLE_UID
+	check.uid = UnavailableUID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check file uid, want not ok got ok")
 	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "owner mismatch") {
@@ -77,7 +84,7 @@ func TestCheckFileFiles(t *testing.T) {
 	}
 
 	check.uid = -1
-	check.gid = UNAVAILABLE_GID
+	check.gid = UnavailableGID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check file gid, want not ok got ok")
 	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "group mismatch") {
@@ -135,7 +142,7 @@ func TestCheckFileDirectories(t *testing.T) {
 		t.Errorf("invalid check file, want no issues got %v", got.Issues)
 	}
 
-	check.uid = UNAVAILABLE_UID
+	check.uid = UnavailableUID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check dir uid, want not ok got ok")
 	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "owner mismatch") {
@@ -143,7 +150,7 @@ func TestCheckFileDirectories(t *testing.T) {
 	}
 
 	check.uid = -1
-	check.gid = UNAVAILABLE_GID
+	check.gid = UnavailableGID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check dir gid, want not ok got ok")
 	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "group mismatch") {
@@ -175,7 +182,7 @@ func TestCheckDialTCPPortAbsent(t *testing.T) {
 	var gotStatus, wantStatus Status
 	wantStatus = StatusDone
 	check = NewCheckDial()
-	check.Address = fmt.Sprintf("localhost:%d", UNAVAILABLE_PORT)
+	check.Address = fmt.Sprintf("localhost:%d", UnavailablePort)
 	check.Timeout, _ = time.ParseDuration("500ms")
 	check.Absent = true
 	if got = check.Run(); !got.IsOK {
@@ -193,7 +200,7 @@ func TestCheckDialTCPPort(t *testing.T) {
 	wantStatus = StatusDone
 	check = NewCheckDial()
 	check.Timeout, _ = time.ParseDuration("500ms")
-	check.Address = fmt.Sprintf("localhost:%d", UNAVAILABLE_PORT)
+	check.Address = fmt.Sprintf("localhost:%d", UnavailablePort)
 	if got = check.Run(); got.IsOK {
 		t.Fatalf("invalid check dial, want not ok got ok")
 	}

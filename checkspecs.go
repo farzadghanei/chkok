@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// CheckSuitesFromSpecSuites creates checksuites from config check spec suites
 func CheckSuitesFromSpecSuites(specSuites ConfCheckSpecSuites) (CheckSuites, error) {
 	var checkSuites CheckSuites = make(map[string][]Check)
 	var check Check
@@ -22,6 +23,7 @@ func CheckSuitesFromSpecSuites(specSuites ConfCheckSpecSuites) (CheckSuites, err
 	return checkSuites, err
 }
 
+// CheckFromSpec creates a check from a given ConfCheckSpec
 func CheckFromSpec(spec ConfCheckSpec) (Check, error) {
 	var err error
 	var check Check
@@ -37,6 +39,7 @@ func CheckFromSpec(spec ConfCheckSpec) (Check, error) {
 	return check, err
 }
 
+// CheckFileFromSpec creates a CheckFile from a ConfCheckSpec
 func CheckFileFromSpec(spec ConfCheckSpec) (*CheckFile, error) {
 	var err error
 	var id int
@@ -57,13 +60,13 @@ func CheckFileFromSpec(spec ConfCheckSpec) (*CheckFile, error) {
 		check.maxSize = *spec.MaxSize
 	}
 	if spec.User != nil {
-		id, err = getUid(*spec.User)
+		id, err = getUID(*spec.User)
 		if err == nil {
 			check.uid = int32(id)
 		}
 	}
 	if spec.Group != nil {
-		id, err = getGid(*spec.Group)
+		id, err = getGID(*spec.Group)
 		if err == nil {
 			check.gid = int32(id)
 		}
@@ -71,6 +74,7 @@ func CheckFileFromSpec(spec ConfCheckSpec) (*CheckFile, error) {
 	return check, err
 }
 
+// CheckDialFromSpec creates a CheckDial from a ConfCheckSpec
 func CheckDialFromSpec(spec ConfCheckSpec) (*CheckDial, error) {
 	var err error
 	check := NewCheckDial()
