@@ -5,6 +5,16 @@ import (
 	"strconv"
 )
 
+
+const EX_OK = 0
+const EX_DATAERR = 65
+const EX_SOFTWARE = 70
+const EX_NOINPUT = 72
+const EX_IOERR = 74
+const EX_TEMPFAIL = 75
+const EX_CONFIG = 78
+
+
 // getUid returns uid of the specified username, if user doesn't exist, but name is numeric, it's assumed the uid
 func getUid(name string) (int, error) {
 	var uid int
