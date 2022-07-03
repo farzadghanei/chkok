@@ -32,10 +32,6 @@ func TestReadConf(t *testing.T) {
 	if !ok {
 		t.Errorf("invalid read conf, want default runner")
 	}
-	wantMaxRunning := 3
-	if runner.MaxRunning != int32(wantMaxRunning) {
-		t.Errorf("invalid read conf default runner, want %v max running got %v", wantMaxRunning, runner.MaxRunning)
-	}
 	wantMinutes := 5
 	if runner.Timeout.Minutes() != float64(wantMinutes) {
 		t.Errorf("invalid read conf default runner, want %v timeout got %v", wantMinutes, runner.Timeout.Minutes())

@@ -22,7 +22,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "invalid configurations: %v", err)
 		os.Exit(chkok.ExConfig)
 	}
-	checks := chkok.RunChecks(checkGroups, int(conf.Runners["default"].MaxRunning), conf.Runners["default"].Timeout)
+	checks := chkok.RunChecks(checkGroups, conf.Runners["default"].Timeout)
 	incompeleteChecks := 0
 	for _, chk := range checks {
 		if chk.Status() != chkok.StatusDone {
