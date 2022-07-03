@@ -7,19 +7,25 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ConfRunners is a map of runner name to its config ConfRunner
 type ConfRunners map[string]ConfRunner
+
+// ConfCheckSpecSuites is list of ConfCheckSpec grouped by name
 type ConfCheckSpecSuites map[string][]ConfCheckSpec
 
+// Conf is app configurations struct
 type Conf struct {
 	Runners     ConfRunners
 	CheckSuites ConfCheckSpecSuites `yaml:"check_suites"`
 }
 
+// ConfRunner is config for the check runners
 type ConfRunner struct {
 	MaxRunning int32 `yaml:"max_running"`
 	Timeout    time.Duration
 }
 
+// ConfCheckSpec is the spec for each check configuration
 type ConfCheckSpec struct {
 	Type    string
 	Path    string
