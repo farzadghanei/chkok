@@ -9,28 +9,39 @@ import (
 	"time"
 )
 
+// Status is status of a given check (use Status* contants)
 type Status uint8
 
 const (
+	// StatusUnknown is when a check has not started
 	StatusUnknown Status = iota
+	// StatusRunning is when a check started to run
 	StatusRunning
+	// StatusStopped is when a check stopped before completion (timeout, etc.)
 	StatusStopped
+	// StatusDone is when a check successfully ran
 	StatusDone
 )
 
+// FileType is the type of a file resources, use Type* contants
 type FileType uint8
 
 const (
+	// TypeAny is when a file type is not important
 	TypeAny FileType = iota
+	// TypeFile is used when a path should be a regular file
 	TypeFile
+	// TypeDir is used when a path should be a directory
 	TypeDir
 )
 
+// Result is the results of a Check
 type Result struct {
 	IsOK   bool
 	Issues []error
 }
 
+// Check is the interface that all checks implement
 type Check interface {
 	Suite() string
 	Name() string
@@ -39,6 +50,7 @@ type Check interface {
 	Status() Status
 }
 
+// CheckSuites is list of checks, grouped by suite name
 type CheckSuites map[string][]Check
 
 type baseCheck struct {
@@ -91,11 +103,12 @@ func (chk *CheckFile) typeString() string {
 	return "any"
 }
 
+// Name returns the unique name of the check
 func (chk *CheckFile) Name() string {
 	return fmt.Sprintf("%v:%v", chk.typeString(), chk.path)
 }
 
-// checkFile.Run runs the check
+// Run runs the check
 func (chk *CheckFile) Run() Result {
 	if chk.path == "" {
 		panic("check file path is empty")
@@ -130,14 +143,14 @@ func (chk *CheckFile) Run() Result {
 		}
 	}
 
-	chk.checkUidGid(fstat, &result)
+	chk.checkUIDGID(fstat, &result)
 	chk.checkSize(finfo.Size(), &result)
 	chk.status = StatusDone
 	return result
 }
 
-// checkFile.checkUidGid checks for file uid/gid attrs updates the provided result
-func (chk *CheckFile) checkUidGid(fstat *syscall.Stat_t, result *Result) {
+// CheckFile.checkUIDGID checks for file uid/gid attrs updates the provided result
+func (chk *CheckFile) checkUIDGID(fstat *syscall.Stat_t, result *Result) {
 	if chk.uid > -1 {
 		if fstat == nil {
 			result.IsOK = false
@@ -159,15 +172,17 @@ func (chk *CheckFile) checkUidGid(fstat *syscall.Stat_t, result *Result) {
 	}
 }
 
-// checkFile.checkSize checks for file min/max size and updates the provided result
+// checkSize checks for file min/max size and updates the provided result
 func (chk *CheckFile) checkSize(size int64, result *Result) {
 	if chk.minSize > -1 && size <= int64(chk.minSize) {
 		result.IsOK = false
-		result.Issues = append(result.Issues, fmt.Errorf("file too small, size %v is less than min size %v", size, chk.minSize))
+		result.Issues = append(result.Issues, fmt.Errorf(
+			"file too small, size %v is less than min size %v", size, chk.minSize))
 	}
 	if chk.maxSize > -1 && size >= chk.maxSize {
 		result.IsOK = false
-		result.Issues = append(result.Issues, fmt.Errorf("file too large, size %v is more than max size %v", size, chk.maxSize))
+		result.Issues = append(result.Issues, fmt.Errorf(
+			"file too large, size %v is more than max size %v", size, chk.maxSize))
 	}
 }
 
@@ -180,7 +195,7 @@ type CheckDial struct {
 	Timeout time.Duration
 }
 
-// NewCheckDial returns a checkDial for local http availablity by default
+// NewCheckDial returns a checkDial for local http availability by default
 func NewCheckDial() *CheckDial {
 	timeout, err := time.ParseDuration("5s")
 	if err != nil {
@@ -191,11 +206,12 @@ func NewCheckDial() *CheckDial {
 	return &check
 }
 
+// Name returns the unique name of the check
 func (chk *CheckDial) Name() string {
 	return fmt.Sprintf("%v:%v", chk.Network, chk.Address)
 }
 
-// checkDial.Run runs the check and returns the results
+// Run runs the check and returns the results
 func (chk *CheckDial) Run() Result {
 	if chk.Network == "" {
 		panic("check dial network is empty")
@@ -211,12 +227,11 @@ func (chk *CheckDial) Run() Result {
 		if chk.Absent {
 			chk.status = StatusDone
 			return result
-		} else {
-			result.IsOK = false
-			result.Issues = append(result.Issues, err)
-			chk.status = StatusDone
-			return result
 		}
+		result.IsOK = false
+		result.Issues = append(result.Issues, err)
+		chk.status = StatusDone
+		return result
 	}
 	defer conn.Close()
 	elapsed := time.Since(start)

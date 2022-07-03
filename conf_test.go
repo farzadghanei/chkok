@@ -11,7 +11,7 @@ func TestReadConfErrors(t *testing.T) {
 	if err == nil {
 		t.Errorf("invalid read conf, want err got nil")
 	}
-	conf, err = ReadConf("LISENSE")
+	conf, err = ReadConf("LICENSE")
 	if err == nil {
 		t.Errorf("invalid read conf, want err got nil")
 	}

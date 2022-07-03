@@ -10,10 +10,12 @@ func CheckSuitesFromSpecSuites(specSuites ConfCheckSpecSuites) (CheckSuites, err
 	var checkSuites CheckSuites = make(map[string][]Check)
 	var check Check
 	var err error
+	var spec ConfCheckSpec
 	for suite, specs := range specSuites {
 		checkSuites[suite] = []Check{}
-		for _, spec := range specs {
-			check, err = CheckFromSpec(spec)
+		for index := range specs {
+			spec = specs[index] // fixing G601: Implicit memory aliasing in for loop
+			check, err = CheckFromSpec(&spec)
 			if err != nil {
 				return checkSuites, err
 			}
@@ -24,7 +26,7 @@ func CheckSuitesFromSpecSuites(specSuites ConfCheckSpecSuites) (CheckSuites, err
 }
 
 // CheckFromSpec creates a check from a given ConfCheckSpec
-func CheckFromSpec(spec ConfCheckSpec) (Check, error) {
+func CheckFromSpec(spec *ConfCheckSpec) (Check, error) {
 	var err error
 	var check Check
 	switch checkType := strings.ToLower(spec.Type); checkType {
@@ -40,7 +42,7 @@ func CheckFromSpec(spec ConfCheckSpec) (Check, error) {
 }
 
 // CheckFileFromSpec creates a CheckFile from a ConfCheckSpec
-func CheckFileFromSpec(spec ConfCheckSpec) (*CheckFile, error) {
+func CheckFileFromSpec(spec *ConfCheckSpec) (*CheckFile, error) {
 	var err error
 	var id int
 	check := NewCheckFile(spec.Path)
@@ -75,7 +77,7 @@ func CheckFileFromSpec(spec ConfCheckSpec) (*CheckFile, error) {
 }
 
 // CheckDialFromSpec creates a CheckDial from a ConfCheckSpec
-func CheckDialFromSpec(spec ConfCheckSpec) (*CheckDial, error) {
+func CheckDialFromSpec(spec *ConfCheckSpec) (*CheckDial, error) {
 	var err error
 	check := NewCheckDial()
 	check.Absent = spec.Absent

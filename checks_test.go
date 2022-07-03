@@ -76,7 +76,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 	check.uid = UnavailableUID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check file uid, want not ok got ok")
-	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "owner mismatch") {
+	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "owner mismatch") {
 		t.Errorf("invalid check file uid, want 1 issue got %v", got.Issues)
 	}
 	if gotStatus = check.Status(); gotStatus != wantStatus {
@@ -87,7 +87,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 	check.gid = UnavailableGID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check file gid, want not ok got ok")
-	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "group mismatch") {
+	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "group mismatch") {
 		t.Errorf("invalid check file gid, want 1 issue got %v", got.Issues)
 	}
 	if gotStatus = check.Status(); gotStatus != wantStatus {
@@ -98,7 +98,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 	check.fileType = TypeDir
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check dir file, want not ok got ok")
-	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "is not a dir") {
+	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "is not a dir") {
 		t.Errorf("invalid check dir file, want 1 issue got %v", got.Issues)
 	}
 
@@ -110,7 +110,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 	check.minSize = 1024 * 1024 * 100
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check file min size, want not ok got ok")
-	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "file too small") {
+	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "file too small") {
 		t.Errorf("invalid check file min size, want 1 issue got %v", got.Issues)
 	}
 	if gotStatus = check.Status(); gotStatus != wantStatus {
@@ -125,7 +125,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 	check.maxSize = 1
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check file max size, want not ok got ok")
-	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "file too large") {
+	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "file too large") {
 		t.Errorf("invalid check file max size, want 1 issue got %v", got.Issues)
 	}
 }
@@ -145,7 +145,7 @@ func TestCheckFileDirectories(t *testing.T) {
 	check.uid = UnavailableUID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check dir uid, want not ok got ok")
-	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "owner mismatch") {
+	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "owner mismatch") {
 		t.Errorf("invalid check dir uid, want 1 issue got %v", got.Issues)
 	}
 
@@ -153,7 +153,7 @@ func TestCheckFileDirectories(t *testing.T) {
 	check.gid = UnavailableGID
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check dir gid, want not ok got ok")
-	} else if len(got.Issues) != 1 || !strings.Contains(fmt.Sprintf("%v", got.Issues[0]), "group mismatch") {
+	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "group mismatch") {
 		t.Errorf("invalid check dir gid, want 1 issue got %v", got.Issues)
 	}
 }

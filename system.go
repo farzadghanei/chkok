@@ -27,9 +27,9 @@ const ExConfig = 78
 func getUID(name string) (int, error) {
 	var uid int
 	var uidstr string
-	user, err := user.Lookup(name)
+	userInfo, err := user.Lookup(name)
 	if err == nil {
-		uidstr = user.Uid
+		uidstr = userInfo.Uid
 	} else {
 		uidstr = name
 	}
@@ -37,7 +37,7 @@ func getUID(name string) (int, error) {
 	return uid, err
 }
 
-// getGID returns gid of the specified group, if gropu doesn't exist, but name is numeric, it's assumed the gid
+// getGID returns gid of the specified group, if group doesn't exist, but name is numeric, it's assumed the gid
 func getGID(name string) (int, error) {
 	var gid int
 	var gidstr string
