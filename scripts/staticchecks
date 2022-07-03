@@ -20,6 +20,11 @@ if [[ "$@" =~ '-h' || "$@" =~ 'help' ]]; then
     exit $EX_OK
 fi
 
+if ! command -v golint >/dev/null; then
+    echo "golint is needed but not available"
+    exit $EX_UNAVAILABLE
+fi
+
 if ! command -v staticcheck >/dev/null; then
     echo "staticheck is needed but not available (https://staticcheck.io)"
     exit $EX_UNAVAILABLE
@@ -33,5 +38,6 @@ fi
 set -o errexit
 
 go vet ./...
+golint -set_exit_status
 staticcheck ./...
 golangci-lint run
