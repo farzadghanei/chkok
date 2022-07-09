@@ -1,12 +1,18 @@
 package chkok
 
 import (
+	"log"
 	"sync"
 	"time"
 )
 
+// Runner runs all the checks logging details
+type Runner struct {
+	Log *log.Logger
+}
+
 // RunChecks runs all the checks in the suite and returns slice of check
-func RunChecks(suites CheckSuites, timeout time.Duration) []Check {
+func (r *Runner) RunChecks(suites CheckSuites, timeout time.Duration) []Check {
 	var now, deadline time.Time
 	deadline = time.Now().Add(timeout)
 	var checks []Check
@@ -16,6 +22,7 @@ func RunChecks(suites CheckSuites, timeout time.Duration) []Check {
 	for _, groupChecks := range suites {
 		checks = append(checks, groupChecks...)
 	}
+	r.Log.Printf("going to run %d checks", len(checks))
 	var result []Check
 	for index := range checks {
 		chk := checks[index]
