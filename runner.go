@@ -28,9 +28,13 @@ func (r *Runner) RunChecks(suites CheckSuites, timeout time.Duration) []Check {
 		chk := checks[index]
 		result = append(result, chk)
 		now = time.Now()
-		// TODO: find a way to consider global timeout to the check,
-		// maybe set timeout to max of remaining global time and per test timeout
 		if now.Before(deadline) {
+			remaining := deadline.Sub(now)
+			if timedCheck, ok := chk.(TimedCheck); ok {
+				if timedCheck.GetTimeout() > remaining {
+					timedCheck.SetTimeout(remaining)
+				}
+			}
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

@@ -52,6 +52,7 @@ type Check interface {
 
 // TimedCheck is the interface for checks that accept a timeout
 type TimedCheck interface {
+	GetTimeout() time.Duration
 	SetTimeout(t time.Duration)
 }
 
@@ -214,6 +215,11 @@ func NewCheckDial() *CheckDial {
 // Name returns the unique name of the check
 func (chk *CheckDial) Name() string {
 	return fmt.Sprintf("%v:%v", chk.Network, chk.Address)
+}
+
+// GetTimeout gets the max duration for the check to timeout
+func (chk *CheckDial) GetTimeout() time.Duration {
+	return chk.timeout
 }
 
 // SetTimeout sets the max duration for the check to timeout
