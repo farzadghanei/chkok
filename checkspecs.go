@@ -88,6 +88,6 @@ func CheckDialFromSpec(spec *ConfCheckSpec) (*CheckDial, error) {
 		err = fmt.Errorf("dial check network '%v' is not supported", spec.Network)
 	}
 	check.Address = spec.Address
-	check.Timeout = spec.Timeout
+	check.timeout = spec.Timeout
 	return check, err
 }

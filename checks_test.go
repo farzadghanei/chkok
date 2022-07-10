@@ -183,7 +183,7 @@ func TestCheckDialTCPPortAbsent(t *testing.T) {
 	wantStatus = StatusDone
 	check = NewCheckDial()
 	check.Address = fmt.Sprintf("localhost:%d", UnavailablePort)
-	check.Timeout, _ = time.ParseDuration("500ms")
+	check.timeout, _ = time.ParseDuration("500ms")
 	check.Absent = true
 	if got = check.Run(); !got.IsOK {
 		t.Fatalf("invalid check dial, want ok got not ok")
@@ -199,7 +199,7 @@ func TestCheckDialTCPPort(t *testing.T) {
 	var gotStatus, wantStatus Status
 	wantStatus = StatusDone
 	check = NewCheckDial()
-	check.Timeout, _ = time.ParseDuration("500ms")
+	check.timeout, _ = time.ParseDuration("500ms")
 	check.Address = fmt.Sprintf("localhost:%d", UnavailablePort)
 	if got = check.Run(); got.IsOK {
 		t.Fatalf("invalid check dial, want not ok got ok")

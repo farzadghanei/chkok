@@ -50,6 +50,11 @@ type Check interface {
 	Status() Status
 }
 
+// TimedCheck is the interface for checks that accept a timeout
+type TimedCheck interface {
+	SetTimeout(t time.Duration)
+}
+
 // CheckSuites is list of checks, grouped by suite name
 type CheckSuites map[string][]Check
 
@@ -192,7 +197,7 @@ type CheckDial struct {
 	Network string
 	Address string
 	Absent  bool
-	Timeout time.Duration
+	timeout time.Duration
 }
 
 // NewCheckDial returns a checkDial for local http availability by default
@@ -201,14 +206,19 @@ func NewCheckDial() *CheckDial {
 	if err != nil {
 		panic("err creating check dial default timeout")
 	}
-	check := CheckDial{Network: "tcp", Address: "127.0.0.1:80", Absent: false}
-	check.Timeout = timeout
-	return &check
+	chk := CheckDial{Network: "tcp", Address: "127.0.0.1:80", Absent: false}
+	chk.SetTimeout(timeout)
+	return &chk
 }
 
 // Name returns the unique name of the check
 func (chk *CheckDial) Name() string {
 	return fmt.Sprintf("%v:%v", chk.Network, chk.Address)
+}
+
+// SetTimeout sets the max duration for the check to timeout
+func (chk *CheckDial) SetTimeout(timeout time.Duration) {
+	chk.timeout = timeout
 }
 
 // Run runs the check and returns the results
@@ -222,7 +232,7 @@ func (chk *CheckDial) Run() Result {
 
 	start := time.Now()
 	chk.result = Result{IsOK: true, Issues: []error{}}
-	conn, err := net.DialTimeout(chk.Network, chk.Address, chk.Timeout)
+	conn, err := net.DialTimeout(chk.Network, chk.Address, chk.timeout)
 	if err != nil { // no connection
 		if chk.Absent {
 			chk.status = StatusDone
@@ -235,7 +245,7 @@ func (chk *CheckDial) Run() Result {
 	}
 	defer conn.Close()
 	elapsed := time.Since(start)
-	if elapsed > chk.Timeout {
+	if elapsed > chk.timeout {
 		chk.status = StatusStopped
 		chk.result.IsOK = false
 		chk.result.Issues = append(chk.result.Issues, fmt.Errorf("check dial timed out after %v seconds", elapsed.Seconds()))
