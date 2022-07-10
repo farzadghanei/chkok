@@ -1,0 +1,25 @@
+---
+# sample check definitions used as fixture in tests
+
+runners:
+  default:
+    timeout: 1m
+
+check_suites:
+  default:
+    - type: dir
+      path: ../examples
+    - type: file
+      path: ../examples/test.yaml
+      min_size: 10
+  missing:
+    - type: file
+      path: doesnt/exist/but/ok
+      absent: true
+    - type: dial
+      network: tcp
+      address: "localhost:1"
+      absent: true
+      timeout: 200ms
+
+...

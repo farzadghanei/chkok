@@ -115,17 +115,17 @@ func (chk *CheckFile) Run() Result {
 	}
 
 	chk.status = StatusRunning
-	result := Result{IsOK: true, Issues: []error{}}
+	chk.result = Result{IsOK: true, Issues: []error{}}
 	finfo, err := os.Lstat(chk.path)
 	if chk.absent { // file is not there
 		chk.status = StatusDone
-		return result
+		return chk.result
 	}
 	if err != nil {
-		result.IsOK = false
-		result.Issues = append(result.Issues, err)
+		chk.result.IsOK = false
+		chk.result.Issues = append(chk.result.Issues, err)
 		chk.status = StatusDone
-		return result
+		return chk.result
 	}
 
 	var fstat *syscall.Stat_t = finfo.Sys().(*syscall.Stat_t)
@@ -133,20 +133,20 @@ func (chk *CheckFile) Run() Result {
 	switch chk.fileType {
 	case TypeDir:
 		if !finfo.IsDir() {
-			result.IsOK = false
-			result.Issues = append(result.Issues, errors.New("is not a directory"))
+			chk.result.IsOK = false
+			chk.result.Issues = append(chk.result.Issues, errors.New("is not a directory"))
 		}
 	case TypeFile:
 		if !finfo.Mode().IsRegular() {
-			result.IsOK = false
-			result.Issues = append(result.Issues, errors.New("is not a regular file"))
+			chk.result.IsOK = false
+			chk.result.Issues = append(chk.result.Issues, errors.New("is not a regular file"))
 		}
 	}
 
-	chk.checkUIDGID(fstat, &result)
-	chk.checkSize(finfo.Size(), &result)
+	chk.checkUIDGID(fstat, &chk.result)
+	chk.checkSize(finfo.Size(), &chk.result)
 	chk.status = StatusDone
-	return result
+	return chk.result
 }
 
 // CheckFile.checkUIDGID checks for file uid/gid attrs updates the provided result
@@ -221,26 +221,26 @@ func (chk *CheckDial) Run() Result {
 	}
 
 	start := time.Now()
-	result := Result{IsOK: true, Issues: []error{}}
+	chk.result = Result{IsOK: true, Issues: []error{}}
 	conn, err := net.DialTimeout(chk.Network, chk.Address, chk.Timeout)
 	if err != nil { // no connection
 		if chk.Absent {
 			chk.status = StatusDone
-			return result
+			return chk.result
 		}
-		result.IsOK = false
-		result.Issues = append(result.Issues, err)
+		chk.result.IsOK = false
+		chk.result.Issues = append(chk.result.Issues, err)
 		chk.status = StatusDone
-		return result
+		return chk.result
 	}
 	defer conn.Close()
 	elapsed := time.Since(start)
 	if elapsed > chk.Timeout {
 		chk.status = StatusStopped
-		result.IsOK = false
-		result.Issues = append(result.Issues, fmt.Errorf("check dial timed out after %v seconds", elapsed.Seconds()))
+		chk.result.IsOK = false
+		chk.result.Issues = append(chk.result.Issues, fmt.Errorf("check dial timed out after %v seconds", elapsed.Seconds()))
 	} else {
 		chk.status = StatusDone
 	}
-	return result
+	return chk.result
 }

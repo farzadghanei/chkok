@@ -21,8 +21,7 @@ type Conf struct {
 
 // ConfRunner is config for the check runners
 type ConfRunner struct {
-	MaxRunning int32 `yaml:"max_running"`
-	Timeout    time.Duration
+	Timeout time.Duration
 }
 
 // ConfCheckSpec is the spec for each check configuration
