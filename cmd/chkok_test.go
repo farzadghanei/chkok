@@ -14,8 +14,7 @@ func TestRunCli(t *testing.T) {
 	baseDir, _ := filepath.Abs(filepath.Dir(cwd))
 	writer := bufio.NewWriter(&buf)
 	var confPath = filepath.Join(baseDir, "examples", "test.yaml")
-	verbose := false
-	got := run(&confPath, writer, &verbose)
+	got := run(confPath, "cli", writer, false)
 	if got != 0 {
 		t.Errorf("want exit code 0, got %v. output: %v", got, buf.String())
 	}
