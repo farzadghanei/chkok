@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/farzadghanei/chkok"
@@ -76,10 +77,16 @@ func runCli(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, 
 
 // run app in http server mode, return exit code
 func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, logger *log.Logger) int {
-	runner := chkok.Runner{Log: logger}
+	httpHandler := func(w http.ResponseWriter, r *http.Request) {
+		logger.Printf("http request: %v", r)
+		fmt.Fprintf(w, "Hello, %q", r.URL.Path)
+	}
+	http.HandleFunc("/", httpHandler)
 	logger.Printf("starting http server ...")
-	// @TODO: implement this
-	fmt.Fprintf(output, "TODO: implement this")
-	runner.RunChecks(*checkGroups, conf.Runners["http"].Timeout)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		logger.Printf("http server failed to start: %v", err)
+		return chkok.ExSoftware
+	}
 	return chkok.ExOK
 }

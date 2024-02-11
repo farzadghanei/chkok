@@ -29,12 +29,14 @@ func (r *Runner) RunChecks(suites CheckSuites, timeout time.Duration) []Check {
 		result = append(result, chk)
 		now = time.Now()
 		if now.Before(deadline) {
+			// adjust timeout for timed checks based on remaining timeout of the runner
 			remaining := deadline.Sub(now)
 			if timedCheck, ok := chk.(TimedCheck); ok {
 				if timedCheck.GetTimeout() > remaining {
 					timedCheck.SetTimeout(remaining)
 				}
 			}
+			// schedule the check to run
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
