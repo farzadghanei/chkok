@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/farzadghanei/chkok"
 )
@@ -112,8 +113,16 @@ func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, logger *log.Logge
 	}
 
 	http.HandleFunc("/", httpHandler)
+	// TODO: allow to set server timeouts from configuration
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      nil, // use http.DefaultServeMux
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 5 * time.Second,
+		IdleTimeout:  2 * time.Second,
+	}
 	logger.Printf("starting http server ...")
-	err := http.ListenAndServe(":8080", nil)
+	err := server.ListenAndServe()
 	if err != nil {
 		logger.Printf("http server failed to start: %v", err)
 		return chkok.ExSoftware
