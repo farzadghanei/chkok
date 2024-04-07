@@ -9,9 +9,10 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.18
+          go-version: 1.22
       - uses: actions/checkout@v3
 
       - name: Verify dependencies
@@ -38,6 +39,6 @@ jobs:
         run: go test -race -vet=off ./...
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.45.2
+          version: v1.54

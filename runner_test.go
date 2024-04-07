@@ -12,8 +12,8 @@ func TestTimedoutRunnerWontSubmitChecks(t *testing.T) {
 	timeout, _ := time.ParseDuration("0s")
 	checks := make(CheckSuites)
 	checks["default"] = []Check{NewCheckFile("examples"), NewCheckDial()}
-	runner := Runner{Log: logger}
-	results := runner.RunChecks(checks, timeout)
+	runner := Runner{Log: logger, Timeout: timeout}
+	results := runner.RunChecks(checks)
 	checkDial := results[1]
 	if checkDial.Status() != StatusUnknown {
 		t.Errorf("wanted 2nd check not run due to timedout")
@@ -28,8 +28,8 @@ func TestTimedoutRunnerAdjustsTimeouts(t *testing.T) {
 	checkDial := NewCheckDial()
 	checkDial.SetTimeout(duration10)
 	checks["default"] = []Check{checkDial}
-	runner := Runner{Log: logger}
-	runner.RunChecks(checks, timeout)
+	runner := Runner{Log: logger, Timeout: timeout}
+	runner.RunChecks(checks)
 	if checkDial.GetTimeout() > timeout {
 		t.Errorf("wanted check dial's timeout adjusted to 1s, got %v", checkDial.GetTimeout())
 	}
