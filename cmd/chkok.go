@@ -51,9 +51,9 @@ func run(confPath, mode string, output io.Writer, verbose bool) int {
 
 // run app in CLI mode, return exit code
 func runCli(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, logger *log.Logger) int {
-	runner := chkok.Runner{Log: logger}
+	runner := chkok.Runner{Log: logger, Timeout: conf.Runners["default"].Timeout}
 	logger.Printf("running checks ...")
-	checks := runner.RunChecks(*checkGroups, conf.Runners["default"].Timeout)
+	checks := runner.RunChecks(*checkGroups)
 	incompeleteChecks := 0
 	failed := 0
 	for _, chk := range checks {
@@ -79,6 +79,7 @@ func runCli(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, 
 func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, logger *log.Logger) int {
 	httpHandler := func(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("http request: %v", r)
+		// should run the check suites here
 		fmt.Fprintf(w, "Hello, %q", r.URL.Path)
 	}
 	http.HandleFunc("/", httpHandler)
