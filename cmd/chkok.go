@@ -77,11 +77,40 @@ func runCli(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, 
 
 // run app in http server mode, return exit code
 func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, logger *log.Logger) int {
+	runner := chkok.Runner{Log: logger, Timeout: conf.Runners["default"].Timeout}
+	logger.Printf("running checks ...")
+
 	httpHandler := func(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("http request: %v", r)
-		// should run the check suites here
-		fmt.Fprintf(w, "Hello, %q", r.URL.Path)
+		checks := runner.RunChecks(*checkGroups)
+		incompeleteChecks := 0
+		failed := 0
+		passed := 0
+		for _, chk := range checks {
+			if chk.Status() != chkok.StatusDone {
+				incompeleteChecks++
+			} else {
+				if chk.Result().IsOK {
+					passed++
+				} else {
+					failed++
+				}
+			}
+			logger.Printf("check %s status %d ok: %v", chk.Name(), chk.Status(), chk.Result().IsOK)
+		}
+		logger.Printf("Run checks done. passed: %v - failed: %v - timedout: %v", passed, failed, incompeleteChecks)
+		if incompeleteChecks > 0 {
+			w.WriteHeader(http.StatusGatewayTimeout)  // 504
+			fmt.Fprintf(w, "TIMEDOUT")
+		} else if failed > 0 {
+			w.WriteHeader(http.StatusInternalServerError)  // 500
+			fmt.Fprintf(w, "FAILED")
+		} else {
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, "OK")
+		}
 	}
+
 	http.HandleFunc("/", httpHandler)
 	logger.Printf("starting http server ...")
 	err := http.ListenAndServe(":8080", nil)
