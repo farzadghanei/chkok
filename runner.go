@@ -8,7 +8,7 @@ import (
 
 // Runner runs all the checks logging details
 type Runner struct {
-	Log *log.Logger
+	Log     *log.Logger
 	Timeout time.Duration
 }
 

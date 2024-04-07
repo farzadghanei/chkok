@@ -44,7 +44,7 @@ func run(confPath, mode string, output io.Writer, verbose bool) int {
 		return chkok.ExConfig
 	}
 	if mode == ModeHTTP {
-		return runHTTP(&checkGroups, conf, output, logger)
+		return runHTTP(&checkGroups, conf, logger)
 	}
 	return runCli(&checkGroups, conf, output, logger)
 }
@@ -76,7 +76,7 @@ func runCli(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, 
 }
 
 // run app in http server mode, return exit code
-func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, logger *log.Logger) int {
+func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, logger *log.Logger) int {
 	runner := chkok.Runner{Log: logger, Timeout: conf.Runners["default"].Timeout}
 	logger.Printf("running checks ...")
 
@@ -100,10 +100,10 @@ func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer,
 		}
 		logger.Printf("Run checks done. passed: %v - failed: %v - timedout: %v", passed, failed, incompeleteChecks)
 		if incompeleteChecks > 0 {
-			w.WriteHeader(http.StatusGatewayTimeout)  // 504
+			w.WriteHeader(http.StatusGatewayTimeout) // 504
 			fmt.Fprintf(w, "TIMEDOUT")
 		} else if failed > 0 {
-			w.WriteHeader(http.StatusInternalServerError)  // 500
+			w.WriteHeader(http.StatusInternalServerError) // 500
 			fmt.Fprintf(w, "FAILED")
 		} else {
 			w.WriteHeader(http.StatusOK)
