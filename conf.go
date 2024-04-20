@@ -21,7 +21,8 @@ type Conf struct {
 
 // ConfRunner is config for the check runners
 type ConfRunner struct {
-	Timeout time.Duration
+	Timeout               time.Duration
+	ShutdownAfterRequests uint32 `yaml:"shutdown_after_requests"`
 }
 
 // ConfCheckSpec is the spec for each check configuration

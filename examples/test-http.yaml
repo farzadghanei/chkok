@@ -1,0 +1,23 @@
+---
+# sample check definitions used as fixture in tests
+
+runners:
+  default:
+    timeout: 1m
+  http:
+    timeout: 5s
+    shutdown_after_requests: 1  # stop http server after 1 request, used for testing http mode
+
+check_suites:
+  default:
+    - type: dir
+      path: ../examples
+    - type: file
+      path: ../examples/test.yaml
+      min_size: 10
+  missing:
+    - type: file
+      path: doesnt/exist/but/ok
+      absent: true
+
+...

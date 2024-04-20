@@ -3,6 +3,7 @@
 runners:
   default:
     timeout: 5m
+    shutdown_after_requests: 100  # mainly useful for testing http mode
 
 check_suites:
   etc:
