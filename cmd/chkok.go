@@ -10,8 +10,10 @@ import (
 	chkok "github.com/farzadghanei/chkok/internal"
 )
 
+const Version string = "0.1.0"
+
 // ModeHTTP run checks in http server mode
-const ModeHTTP = "http"
+const ModeHTTP string = "http"
 
 func main() {
 	var confPath string
