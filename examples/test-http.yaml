@@ -6,7 +6,11 @@ runners:
     timeout: 1m
   http:
     timeout: 5s
+    listen_address: "127.0.0.1:51234"
     shutdown_after_requests: 1  # stop http server after 1 request, used for testing http mode
+    request_read_timeout: 2s
+    response_write_timeout: 2s
+
 
 check_suites:
   default:

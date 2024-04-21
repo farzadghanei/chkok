@@ -13,6 +13,10 @@ import (
 const (
 	// ShutdownTimeout is the time to wait for server to shutdown
 	ShutdownTimeout = 5 * time.Second
+	// DefaultListenAddress is the default http server listen address
+	DefaultListenAddress        = ":8080"
+	DefaultRequestReadTimeout   = 5 * time.Second
+	DefaultResponseWriteTimeout = 5 * time.Second
 )
 
 // RunModeCLI run app in CLI mode using the provided configs, return exit code
@@ -40,6 +44,9 @@ func httpRequestAsString(r *http.Request) string {
 func RunModeHTTP(checkGroups *CheckSuites, conf *Conf, logger *log.Logger) int {
 	timeout := conf.Runners["default"].Timeout
 	shutdownAfterRequests := conf.Runners["default"].ShutdownAfterRequests
+	listenAddress := conf.Runners["default"].ListenAddress
+	requestReadTimeout := conf.Runners["default"].RequestReadTimeout
+	responseWriteTimeout := conf.Runners["default"].ResponseWriteTimeout
 
 	// override default runner config if with http runner config if provided
 	if httpRunnerConf, ok := conf.Runners["http"]; ok {
@@ -49,7 +56,33 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *Conf, logger *log.Logger) int {
 		if httpRunnerConf.ShutdownAfterRequests > 0 {
 			shutdownAfterRequests = httpRunnerConf.ShutdownAfterRequests
 		}
+		if httpRunnerConf.ShutdownAfterRequests > 0 {
+			shutdownAfterRequests = httpRunnerConf.ShutdownAfterRequests
+		}
+		if httpRunnerConf.ListenAddress != "" {
+			listenAddress = httpRunnerConf.ListenAddress
+		}
+		if httpRunnerConf.RequestReadTimeout > 0 {
+			requestReadTimeout = httpRunnerConf.RequestReadTimeout
+		}
+		if httpRunnerConf.ResponseWriteTimeout > 0 {
+			responseWriteTimeout = httpRunnerConf.ResponseWriteTimeout
+		}
 	}
+
+	if listenAddress == "" {
+		logger.Printf("no http listen address provided, using default: %s", DefaultListenAddress)
+		listenAddress = DefaultListenAddress
+	}
+	if requestReadTimeout == 0 {
+		logger.Printf("no http request read timeout provided, using default: %s", DefaultRequestReadTimeout)
+		requestReadTimeout = DefaultRequestReadTimeout
+	}
+	if responseWriteTimeout == 0 {
+		logger.Printf("no http response write timeout provided, using default: %s", DefaultResponseWriteTimeout)
+		responseWriteTimeout = DefaultResponseWriteTimeout
+	}
+
 	runner := Runner{Log: logger, Timeout: timeout}
 
 	var reqHandlerChan = make(chan *http.Request, 1)
@@ -74,11 +107,11 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *Conf, logger *log.Logger) int {
 	http.HandleFunc("/", httpHandler)
 	// TODO: allow to set server timeouts from configuration
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         listenAddress,
 		Handler:      nil, // use http.DefaultServeMux
-		ReadTimeout:  2 * time.Second,
-		WriteTimeout: 5 * time.Second,
-		IdleTimeout:  2 * time.Second,
+		ReadTimeout:  requestReadTimeout,
+		WriteTimeout: responseWriteTimeout,
+		IdleTimeout:  0 * time.Second, // set to 0 so uses read timeout
 	}
 
 	var count uint32 = 0

@@ -4,6 +4,7 @@ runners:
   default:
     timeout: 5m
     shutdown_after_requests: 100  # mainly useful for testing http mode
+    listen_address: "127.0.0.1:51234"
 
 check_suites:
   etc:

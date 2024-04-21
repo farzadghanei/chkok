@@ -42,7 +42,7 @@ func TestRunHttp(t *testing.T) {
 	// Test the runner via an HTTP request
 	// Create a new request with a context
 	req, err := http.NewRequestWithContext(
-		context.Background(), http.MethodGet, "http://localhost:8080", http.NoBody)
+		context.Background(), http.MethodGet, "http://127.0.0.1:51234", http.NoBody)
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}

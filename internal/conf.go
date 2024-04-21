@@ -22,7 +22,10 @@ type Conf struct {
 // ConfRunner is config for the check runners
 type ConfRunner struct {
 	Timeout               time.Duration
-	ShutdownAfterRequests uint32 `yaml:"shutdown_after_requests"`
+	ShutdownAfterRequests uint32        `yaml:"shutdown_after_requests"`
+	ListenAddress         string        `yaml:"listen_address"`
+	RequestReadTimeout    time.Duration `yaml:"request_read_timeout"`
+	ResponseWriteTimeout  time.Duration `yaml:"response_write_timeout"`
 }
 
 // ConfCheckSpec is the spec for each check configuration
