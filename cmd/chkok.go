@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/farzadghanei/chkok"
+	chkok "github.com/farzadghanei/chkok/internal"
 )
 
 // ModeHTTP run checks in http server mode

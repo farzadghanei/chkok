@@ -24,7 +24,7 @@ func TestReadConfErrors(t *testing.T) {
 func TestReadConf(t *testing.T) {
 	var conf *Conf
 	var err error
-	conf, err = ReadConf("examples/config.yaml")
+	conf, err = ReadConf("../examples/config.yaml")
 	if err != nil {
 		t.Errorf("invalid read conf, want nil err got err %v", err)
 	}
