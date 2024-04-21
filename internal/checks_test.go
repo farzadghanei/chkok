@@ -61,9 +61,10 @@ func TestCheckFileExistingFiles(t *testing.T) {
 	var check *CheckFile
 	var got Result
 	var gotStatus, wantStatus Status
+	const filePath = "../LICENSE"
 	wantStatus = StatusDone
 
-	check = NewCheckFile("LICENSE")
+	check = NewCheckFile(filePath)
 	if got = check.Run(); !got.IsOK {
 		t.Error("invalid check file, want ok got not ok")
 	} else if len(got.Issues) > 0 {
@@ -94,7 +95,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 		t.Errorf("invalid check file status, want %v got %v", wantStatus, gotStatus)
 	}
 
-	check = NewCheckFile("LICENSE")
+	check = NewCheckFile(filePath)
 	check.fileType = TypeDir
 	if got = check.Run(); got.IsOK {
 		t.Error("invalid check dir file, want not ok got ok")
@@ -102,7 +103,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 		t.Errorf("invalid check dir file, want 1 issue got %v", got.Issues)
 	}
 
-	check = NewCheckFile("LICENSE")
+	check = NewCheckFile(filePath)
 	check.minSize = 0
 	if got = check.Run(); !got.IsOK {
 		t.Error("invalid check file min size, want ok got not ok")
@@ -117,7 +118,7 @@ func TestCheckFileExistingFiles(t *testing.T) {
 		t.Errorf("invalid check file status, want %v got %v", wantStatus, gotStatus)
 	}
 
-	check = NewCheckFile("LICENSE")
+	check = NewCheckFile(filePath)
 	check.maxSize = 1024 * 1024 * 100
 	if got = check.Run(); !got.IsOK {
 		t.Error("invalid check file max size, want ok got not ok")
@@ -133,8 +134,9 @@ func TestCheckFileExistingFiles(t *testing.T) {
 func TestCheckFileDirectories(t *testing.T) {
 	var check *CheckFile
 	var got Result
+	const filePath = "../cmd"
 
-	check = NewCheckFile("cmd")
+	check = NewCheckFile(filePath)
 	check.fileType = TypeDir
 	if got = check.Run(); !got.IsOK {
 		t.Error("invalid check dir dir, want ok got not ok")

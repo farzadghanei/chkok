@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
-	"github.com/farzadghanei/chkok"
+	chkok "github.com/farzadghanei/chkok/internal"
 )
 
 // ModeHTTP run checks in http server mode
@@ -45,87 +43,7 @@ func run(confPath, mode string, output io.Writer, verbose bool) int {
 		return chkok.ExConfig
 	}
 	if mode == ModeHTTP {
-		return runHTTP(&checkGroups, conf, logger)
+		return chkok.RunModeHTTP(&checkGroups, conf, logger)
 	}
-	return runCli(&checkGroups, conf, output, logger)
-}
-
-// run app in CLI mode, return exit code
-func runCli(checkGroups *chkok.CheckSuites, conf *chkok.Conf, output io.Writer, logger *log.Logger) int {
-	runner := chkok.Runner{Log: logger, Timeout: conf.Runners["default"].Timeout}
-	logger.Printf("running checks ...")
-	checks := runner.RunChecks(*checkGroups)
-	incompeleteChecks := 0
-	failed := 0
-	for _, chk := range checks {
-		if chk.Status() != chkok.StatusDone {
-			incompeleteChecks++
-		}
-		if !chk.Result().IsOK {
-			failed++
-		}
-		fmt.Fprintf(output, "check %s status %d ok: %v\n", chk.Name(), chk.Status(), chk.Result().IsOK)
-	}
-	if incompeleteChecks > 0 {
-		fmt.Fprintf(output, "%v checks didn't get to completion", incompeleteChecks)
-		return chkok.ExTempFail
-	}
-	if failed > 0 {
-		return chkok.ExSoftware
-	}
-	return chkok.ExOK
-}
-
-// run app in http server mode, return exit code
-func runHTTP(checkGroups *chkok.CheckSuites, conf *chkok.Conf, logger *log.Logger) int {
-	runner := chkok.Runner{Log: logger, Timeout: conf.Runners["default"].Timeout}
-	logger.Printf("running checks ...")
-
-	httpHandler := func(w http.ResponseWriter, r *http.Request) {
-		logger.Printf("http request: %v", r)
-		checks := runner.RunChecks(*checkGroups)
-		incompeleteChecks := 0
-		failed := 0
-		passed := 0
-		for _, chk := range checks {
-			if chk.Status() != chkok.StatusDone {
-				incompeleteChecks++
-			} else {
-				if chk.Result().IsOK {
-					passed++
-				} else {
-					failed++
-				}
-			}
-			logger.Printf("check %s status %d ok: %v", chk.Name(), chk.Status(), chk.Result().IsOK)
-		}
-		logger.Printf("Run checks done. passed: %v - failed: %v - timedout: %v", passed, failed, incompeleteChecks)
-		if incompeleteChecks > 0 {
-			w.WriteHeader(http.StatusGatewayTimeout) // 504
-			fmt.Fprintf(w, "TIMEDOUT")
-		} else if failed > 0 {
-			w.WriteHeader(http.StatusInternalServerError) // 500
-			fmt.Fprintf(w, "FAILED")
-		} else {
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "OK")
-		}
-	}
-
-	http.HandleFunc("/", httpHandler)
-	// TODO: allow to set server timeouts from configuration
-	server := &http.Server{
-		Addr:         ":8080",
-		Handler:      nil, // use http.DefaultServeMux
-		ReadTimeout:  2 * time.Second,
-		WriteTimeout: 5 * time.Second,
-		IdleTimeout:  2 * time.Second,
-	}
-	logger.Printf("starting http server ...")
-	err := server.ListenAndServe()
-	if err != nil {
-		logger.Printf("http server failed to start: %v", err)
-		return chkok.ExSoftware
-	}
-	return chkok.ExOK
+	return chkok.RunModeCLI(&checkGroups, conf, output, logger)
 }

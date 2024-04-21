@@ -24,7 +24,7 @@ func TestReadConfErrors(t *testing.T) {
 func TestReadConf(t *testing.T) {
 	var conf *Conf
 	var err error
-	conf, err = ReadConf("examples/config.yaml")
+	conf, err = ReadConf("../examples/config.yaml")
 	if err != nil {
 		t.Errorf("invalid read conf, want nil err got err %v", err)
 	}
@@ -35,6 +35,11 @@ func TestReadConf(t *testing.T) {
 	wantMinutes := 5
 	if runner.Timeout.Minutes() != float64(wantMinutes) {
 		t.Errorf("invalid read conf default runner, want %v timeout got %v", wantMinutes, runner.Timeout.Minutes())
+	}
+	var wantShutdownAfterRequests uint32 = 100
+	if runner.ShutdownAfterRequests != wantShutdownAfterRequests {
+		t.Errorf("invalid read conf, want %v shutdown after requests got %v",
+			wantShutdownAfterRequests, runner.ShutdownAfterRequests)
 	}
 	etcChecks, ok := conf.CheckSuites["etc"]
 	if !ok {
