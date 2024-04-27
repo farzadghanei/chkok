@@ -13,10 +13,6 @@ import (
 const (
 	// ShutdownTimeout is the time to wait for server to shutdown
 	ShutdownTimeout = 5 * time.Second
-	// DefaultListenAddress is the default http server listen address
-	DefaultListenAddress        = ":8080"
-	DefaultRequestReadTimeout   = 5 * time.Second
-	DefaultResponseWriteTimeout = 5 * time.Second
 )
 
 // RunModeCLI run app in CLI mode using the provided configs, return exit code
@@ -51,42 +47,28 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	requestReadTimeout := conf.RequestReadTimeout
 	responseWriteTimeout := conf.ResponseWriteTimeout
 
-	if listenAddress == "" {
-		logger.Printf("no http listen address provided, using default: %s", DefaultListenAddress)
-		listenAddress = DefaultListenAddress
-	}
-	if requestReadTimeout == 0 {
-		logger.Printf("no http request read timeout provided, using default: %s", DefaultRequestReadTimeout)
-		requestReadTimeout = DefaultRequestReadTimeout
-	}
-	if responseWriteTimeout == 0 {
-		logger.Printf("no http response write timeout provided, using default: %s", DefaultResponseWriteTimeout)
-		responseWriteTimeout = DefaultResponseWriteTimeout
-	}
-
 	runner := Runner{Log: logger, Timeout: timeout}
 
 	var reqHandlerChan = make(chan *http.Request, 1)
 
 	httpHandler := func(w http.ResponseWriter, r *http.Request) {
-		// TODO: custmize return codes and messages from configuration
 		logger.Printf("processing http request: %s", httpRequestAsString(r))
 		_, failed, timedout := runChecks(&runner, checkGroups, logger)
 		if timedout > 0 {
 			w.WriteHeader(http.StatusGatewayTimeout) // 504
-			fmt.Fprintf(w, "TIMEDOUT")
+			fmt.Fprintf(w, conf.ResponseTimeout)
 		} else if failed > 0 {
 			w.WriteHeader(http.StatusInternalServerError) // 500
-			fmt.Fprintf(w, "FAILED")
+			fmt.Fprintf(w, conf.ResponseFailed)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "OK")
+			fmt.Fprintf(w, conf.ResponseOK)
 		}
 		reqHandlerChan <- r
 	}
 
 	http.HandleFunc("/", httpHandler)
-	// TODO: allow to set server timeouts from configuration
+
 	server := &http.Server{
 		Addr:         listenAddress,
 		Handler:      nil, // use http.DefaultServeMux
@@ -107,13 +89,15 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 			if shutdownSignalHeaderValue != "" && request.Header.Get("X-Server-Shutdown") == shutdownSignalHeaderValue {
 				if err := server.Shutdown(timeoutCtx); err != nil {
 					logger.Printf("http server shutdown failed: %v", err)
+				} else {
+					logger.Printf("http server shutdown signal received!")
 				}
 				return
 			}
 		}
 	}()
 
-	logger.Printf("starting http server ...")
+	logger.Printf("starting http server listening on %s", listenAddress)
 	err := server.ListenAndServe()
 	close(reqHandlerChan)
 	if err != nil && err != http.ErrServerClosed {

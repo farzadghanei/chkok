@@ -26,6 +26,9 @@ type ConfRunner struct {
 	ListenAddress        string        `yaml:"listen_address"`
 	RequestReadTimeout   time.Duration `yaml:"request_read_timeout"`
 	ResponseWriteTimeout time.Duration `yaml:"response_write_timeout"`
+	ResponseOK           string        `yaml:"response_ok"`
+	ResponseFailed       string        `yaml:"response_failed"`
+	ResponseTimeout      string        `yaml:"response_timeout"`
 }
 
 // ConfCheckSpec is the spec for each check configuration
@@ -54,21 +57,56 @@ func ReadConf(path string) (*Conf, error) {
 	return &conf, err
 }
 
+// GetDefaultConfRunner returns a ConfRunner based on the default configuration
+func GetDefaultConfRunner(runners *ConfRunners) ConfRunner {
+	defaultRunner := ConfRunner{
+		Timeout:              0,
+		ShutdownSignalHeader: nil,
+		ListenAddress:        "127.0.0.1:8880",
+		RequestReadTimeout:   30 * time.Second,
+		ResponseWriteTimeout: 30 * time.Second,
+		ResponseOK:           "OK",
+		ResponseFailed:       "FAILED",
+		ResponseTimeout:      "TIMEOUT",
+	}
+
+	if defaultConf, defaultExists := (*runners)["default"]; defaultExists {
+		if defaultConf.Timeout != 0 {
+			defaultRunner.Timeout = defaultConf.Timeout
+		}
+		if defaultConf.ShutdownSignalHeader != nil {
+			defaultRunner.ShutdownSignalHeader = defaultConf.ShutdownSignalHeader
+		}
+		if defaultConf.ListenAddress != "" {
+			defaultRunner.ListenAddress = defaultConf.ListenAddress
+		}
+		if defaultConf.RequestReadTimeout != 0 {
+			defaultRunner.RequestReadTimeout = defaultConf.RequestReadTimeout
+		}
+		if defaultConf.ResponseWriteTimeout != 0 {
+			defaultRunner.ResponseWriteTimeout = defaultConf.ResponseWriteTimeout
+		}
+		if defaultConf.ResponseOK != "" {
+			defaultRunner.ResponseOK = defaultConf.ResponseOK
+		}
+		if defaultConf.ResponseFailed != "" {
+			defaultRunner.ResponseFailed = defaultConf.ResponseFailed
+		}
+		if defaultConf.ResponseTimeout != "" {
+			defaultRunner.ResponseTimeout = defaultConf.ResponseTimeout
+		}
+	}
+
+	return defaultRunner
+}
+
 // GetConfRunner returns the runner config for the name merged with the default, and bool if it exists
 func GetConfRunner(runners *ConfRunners, name string) (ConfRunner, bool) {
-	defaultConf, defaultExists := (*runners)["default"]
+	defaultConf := GetDefaultConfRunner(runners)
 	namedConf, namedExists := (*runners)[name]
 
-	if !defaultExists && !namedExists {
-		return ConfRunner{}, false
-	}
-
-	if !defaultExists {
-		return namedConf, true
-	}
-
 	if !namedExists {
-		return defaultConf, true
+		return defaultConf, false
 	}
 
 	// Merge the requested runner with the default runner
@@ -78,6 +116,9 @@ func GetConfRunner(runners *ConfRunners, name string) (ConfRunner, bool) {
 		ListenAddress:        namedConf.ListenAddress,
 		RequestReadTimeout:   namedConf.RequestReadTimeout,
 		ResponseWriteTimeout: namedConf.ResponseWriteTimeout,
+		ResponseOK:           namedConf.ResponseOK,
+		ResponseFailed:       namedConf.ResponseFailed,
+		ResponseTimeout:      namedConf.ResponseTimeout,
 	}
 
 	if mergedConf.Timeout == 0 {
@@ -94,6 +135,15 @@ func GetConfRunner(runners *ConfRunners, name string) (ConfRunner, bool) {
 	}
 	if mergedConf.ResponseWriteTimeout == 0 {
 		mergedConf.ResponseWriteTimeout = defaultConf.ResponseWriteTimeout
+	}
+	if mergedConf.ResponseOK == "" {
+		mergedConf.ResponseOK = defaultConf.ResponseOK
+	}
+	if mergedConf.ResponseFailed == "" {
+		mergedConf.ResponseFailed = defaultConf.ResponseFailed
+	}
+	if mergedConf.ResponseTimeout == "" {
+		mergedConf.ResponseTimeout = defaultConf.ResponseTimeout
 	}
 
 	return mergedConf, true
