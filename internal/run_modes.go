@@ -16,8 +16,8 @@ const (
 )
 
 // RunModeCLI run app in CLI mode using the provided configs, return exit code
-func RunModeCLI(checkGroups *CheckSuites, conf *Conf, output io.Writer, logger *log.Logger) int {
-	runner := Runner{Log: logger, Timeout: conf.Runners["default"].Timeout}
+func RunModeCLI(checkGroups *CheckSuites, conf *ConfRunner, output io.Writer, logger *log.Logger) int {
+	runner := Runner{Log: logger, Timeout: conf.Timeout}
 	passed, failed, timedout := runChecks(&runner, checkGroups, logger)
 	total := passed + failed + timedout
 	if timedout > 0 {
@@ -37,48 +37,44 @@ func httpRequestAsString(r *http.Request) string {
 }
 
 // RunModeHTTP runs app in http server mode using the provided config, return exit code
-func RunModeHTTP(checkGroups *CheckSuites, conf *Conf, logger *log.Logger) int {
-	timeout := conf.Runners["default"].Timeout
-	shutdownAfterRequests := conf.Runners["default"].ShutdownAfterRequests
-
-	// override default runner config if with http runner config if provided
-	if httpRunnerConf, ok := conf.Runners["http"]; ok {
-		if httpRunnerConf.Timeout > 0 {
-			timeout = httpRunnerConf.Timeout
-		}
-		if httpRunnerConf.ShutdownAfterRequests > 0 {
-			shutdownAfterRequests = httpRunnerConf.ShutdownAfterRequests
-		}
+func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger) int {
+	timeout := conf.Timeout
+	shutdownSignalHeaderValue := ""
+	if conf.ShutdownSignalHeader != nil {
+		shutdownSignalHeaderValue = *conf.ShutdownSignalHeader
 	}
+	listenAddress := conf.ListenAddress
+	requestReadTimeout := conf.RequestReadTimeout
+	responseWriteTimeout := conf.ResponseWriteTimeout
+
 	runner := Runner{Log: logger, Timeout: timeout}
 
 	var reqHandlerChan = make(chan *http.Request, 1)
 
 	httpHandler := func(w http.ResponseWriter, r *http.Request) {
-		// TODO: custmize return codes and messages from configuration
 		logger.Printf("processing http request: %s", httpRequestAsString(r))
 		_, failed, timedout := runChecks(&runner, checkGroups, logger)
 		if timedout > 0 {
 			w.WriteHeader(http.StatusGatewayTimeout) // 504
-			fmt.Fprintf(w, "TIMEDOUT")
+			fmt.Fprintf(w, conf.ResponseTimeout)
 		} else if failed > 0 {
 			w.WriteHeader(http.StatusInternalServerError) // 500
-			fmt.Fprintf(w, "FAILED")
+			fmt.Fprintf(w, conf.ResponseFailed)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "OK")
+			fmt.Fprintf(w, conf.ResponseOK)
 		}
 		reqHandlerChan <- r
 	}
 
 	http.HandleFunc("/", httpHandler)
-	// TODO: allow to set server timeouts from configuration
+
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         listenAddress,
 		Handler:      nil, // use http.DefaultServeMux
-		ReadTimeout:  2 * time.Second,
-		WriteTimeout: 5 * time.Second,
-		IdleTimeout:  2 * time.Second,
+		ReadTimeout:  requestReadTimeout,
+		WriteTimeout: responseWriteTimeout,
+		IdleTimeout:  0 * time.Second, // set to 0 so uses read timeout
 	}
 
 	var count uint32 = 0
@@ -90,23 +86,23 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *Conf, logger *log.Logger) int {
 		for request = range reqHandlerChan {
 			atomic.AddUint32(&count, 1)
 			logger.Printf("request [%v] is processed: %v", count, httpRequestAsString(request))
-			if shutdownAfterRequests > 0 && atomic.LoadUint32(&count) >= shutdownAfterRequests {
+			if shutdownSignalHeaderValue != "" && request.Header.Get("X-Server-Shutdown") == shutdownSignalHeaderValue {
 				if err := server.Shutdown(timeoutCtx); err != nil {
 					logger.Printf("http server shutdown failed: %v", err)
+				} else {
+					logger.Printf("http server shutdown signal received!")
 				}
 				return
 			}
 		}
 	}()
 
-	logger.Printf("starting http server ...")
+	logger.Printf("starting http server listening on %s", listenAddress)
 	err := server.ListenAndServe()
 	close(reqHandlerChan)
-	if err != nil {
-		if atomic.LoadUint32(&count) < 1 { // server didn't handle any requests
-			logger.Printf("http server failed to start: %v", err)
-			return ExSoftware
-		}
+	if err != nil && err != http.ErrServerClosed {
+		logger.Printf("http server failed to start: %v", err)
+		return ExSoftware
 	}
 	logger.Printf("http server shutdown!")
 	return ExOK

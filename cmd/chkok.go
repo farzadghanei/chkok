@@ -10,8 +10,10 @@ import (
 	chkok "github.com/farzadghanei/chkok/internal"
 )
 
+const Version string = "0.2.0"
+
 // ModeHTTP run checks in http server mode
-const ModeHTTP = "http"
+const ModeHTTP string = "http"
 
 func main() {
 	var confPath string
@@ -42,8 +44,9 @@ func run(confPath, mode string, output io.Writer, verbose bool) int {
 		fmt.Fprintf(output, "invalid configurations: %v", err)
 		return chkok.ExConfig
 	}
+	runnerConf, _ := chkok.GetConfRunner(&conf.Runners, mode)
 	if mode == ModeHTTP {
-		return chkok.RunModeHTTP(&checkGroups, conf, logger)
+		return chkok.RunModeHTTP(&checkGroups, &runnerConf, logger)
 	}
-	return chkok.RunModeCLI(&checkGroups, conf, output, logger)
+	return chkok.RunModeCLI(&checkGroups, &runnerConf, output, logger)
 }

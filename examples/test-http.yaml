@@ -5,8 +5,15 @@ runners:
   default:
     timeout: 1m
   http:
+    listen_address: "127.0.0.1:51234"
+    request_read_timeout: 2s
+    response_write_timeout: 2s
+    # shutdown_signal_header is mainly useful for testing http mode, do not set it in production
+    # if set, better be treated like a secret, and a secure transport layer should be used.
+    # this is the value set on "X-Shutdown-Signal" header in the http request
+    shutdown_signal_header: "test-shutdown-signal"
     timeout: 5s
-    shutdown_after_requests: 1  # stop http server after 1 request, used for testing http mode
+
 
 check_suites:
   default:
