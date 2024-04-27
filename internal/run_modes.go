@@ -20,8 +20,8 @@ const (
 )
 
 // RunModeCLI run app in CLI mode using the provided configs, return exit code
-func RunModeCLI(checkGroups *CheckSuites, conf *Conf, output io.Writer, logger *log.Logger) int {
-	runner := Runner{Log: logger, Timeout: conf.Runners["default"].Timeout}
+func RunModeCLI(checkGroups *CheckSuites, conf *ConfRunner, output io.Writer, logger *log.Logger) int {
+	runner := Runner{Log: logger, Timeout: conf.Timeout}
 	passed, failed, timedout := runChecks(&runner, checkGroups, logger)
 	total := passed + failed + timedout
 	if timedout > 0 {
@@ -41,34 +41,12 @@ func httpRequestAsString(r *http.Request) string {
 }
 
 // RunModeHTTP runs app in http server mode using the provided config, return exit code
-func RunModeHTTP(checkGroups *CheckSuites, conf *Conf, logger *log.Logger) int {
-	timeout := conf.Runners["default"].Timeout
-	shutdownAfterRequests := conf.Runners["default"].ShutdownAfterRequests
-	listenAddress := conf.Runners["default"].ListenAddress
-	requestReadTimeout := conf.Runners["default"].RequestReadTimeout
-	responseWriteTimeout := conf.Runners["default"].ResponseWriteTimeout
-
-	// override default runner config if with http runner config if provided
-	if httpRunnerConf, ok := conf.Runners["http"]; ok {
-		if httpRunnerConf.Timeout > 0 {
-			timeout = httpRunnerConf.Timeout
-		}
-		if httpRunnerConf.ShutdownAfterRequests > 0 {
-			shutdownAfterRequests = httpRunnerConf.ShutdownAfterRequests
-		}
-		if httpRunnerConf.ShutdownAfterRequests > 0 {
-			shutdownAfterRequests = httpRunnerConf.ShutdownAfterRequests
-		}
-		if httpRunnerConf.ListenAddress != "" {
-			listenAddress = httpRunnerConf.ListenAddress
-		}
-		if httpRunnerConf.RequestReadTimeout > 0 {
-			requestReadTimeout = httpRunnerConf.RequestReadTimeout
-		}
-		if httpRunnerConf.ResponseWriteTimeout > 0 {
-			responseWriteTimeout = httpRunnerConf.ResponseWriteTimeout
-		}
-	}
+func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger) int {
+	timeout := conf.Timeout
+	shutdownAfterRequests := conf.ShutdownAfterRequests
+	listenAddress := conf.ListenAddress
+	requestReadTimeout := conf.RequestReadTimeout
+	responseWriteTimeout := conf.ResponseWriteTimeout
 
 	if listenAddress == "" {
 		logger.Printf("no http listen address provided, using default: %s", DefaultListenAddress)

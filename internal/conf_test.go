@@ -2,6 +2,7 @@ package chkok
 
 import (
 	"testing"
+	"time"
 )
 
 func TestReadConfErrors(t *testing.T) {
@@ -61,5 +62,66 @@ func TestReadConf(t *testing.T) {
 	}
 	if len(invalidChecks) > 0 {
 		t.Errorf("read conf found invalid checks but shouldn't")
+	}
+}
+
+func TestGetConfRunner(t *testing.T) {
+	runners := ConfRunners{
+		"default": ConfRunner{
+			Timeout:               5 * time.Second,
+			ShutdownAfterRequests: 10,
+			ListenAddress:         "localhost:8080",
+		},
+		"testHttpRunner": ConfRunner{
+			Timeout:               10 * time.Second,
+			ShutdownAfterRequests: 20,
+			ListenAddress:         "localhost:9090",
+			RequestReadTimeout:    5 * time.Second,
+			ResponseWriteTimeout:  5 * time.Second,
+		},
+	}
+
+	tests := []struct {
+		name           string
+		runnerName     string
+		expectedRunner ConfRunner
+		expectedExists bool
+	}{
+		{
+			name:       "Existing runner",
+			runnerName: "testHttpRunner",
+			expectedRunner: ConfRunner{
+				Timeout:               10 * time.Second,
+				ShutdownAfterRequests: 20,
+				ListenAddress:         "localhost:9090",
+				RequestReadTimeout:    5 * time.Second,
+				ResponseWriteTimeout:  5 * time.Second,
+			},
+			expectedExists: true,
+		},
+		{
+			name:           "Non-existing runner",
+			runnerName:     "nonExistingRunner",
+			expectedRunner: runners["default"],
+			expectedExists: true,
+		},
+		{
+			name:           "Default runner",
+			runnerName:     "default",
+			expectedRunner: runners["default"],
+			expectedExists: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runner, exists := GetConfRunner(&runners, tt.runnerName)
+			if exists != tt.expectedExists {
+				t.Errorf("expected runner exists to be %v, got %v", tt.expectedExists, exists)
+			}
+			if runner != tt.expectedRunner {
+				t.Errorf("expected runner to be %+v, got %+v", tt.expectedRunner, runner)
+			}
+		})
 	}
 }

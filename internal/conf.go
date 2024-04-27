@@ -53,3 +53,48 @@ func ReadConf(path string) (*Conf, error) {
 	err = yaml.Unmarshal(contents, &conf)
 	return &conf, err
 }
+
+// GetConfRunner returns the runner config for the name merged with the default, and bool if it exists
+func GetConfRunner(runners *ConfRunners, name string) (ConfRunner, bool) {
+	defaultConf, defaultExists := (*runners)["default"]
+	namedConf, namedExists := (*runners)[name]
+
+	if !defaultExists && !namedExists {
+		return ConfRunner{}, false
+	}
+
+	if !defaultExists {
+		return namedConf, true
+	}
+
+	if !namedExists {
+		return defaultConf, true
+	}
+
+	// Merge the requested runner with the default runner
+	mergedConf := ConfRunner{
+		Timeout:               namedConf.Timeout,
+		ShutdownAfterRequests: namedConf.ShutdownAfterRequests,
+		ListenAddress:         namedConf.ListenAddress,
+		RequestReadTimeout:    namedConf.RequestReadTimeout,
+		ResponseWriteTimeout:  namedConf.ResponseWriteTimeout,
+	}
+
+	if mergedConf.Timeout == 0 {
+		mergedConf.Timeout = defaultConf.Timeout
+	}
+	if mergedConf.ShutdownAfterRequests == 0 {
+		mergedConf.ShutdownAfterRequests = defaultConf.ShutdownAfterRequests
+	}
+	if mergedConf.ListenAddress == "" {
+		mergedConf.ListenAddress = defaultConf.ListenAddress
+	}
+	if mergedConf.RequestReadTimeout == 0 {
+		mergedConf.RequestReadTimeout = defaultConf.RequestReadTimeout
+	}
+	if mergedConf.ResponseWriteTimeout == 0 {
+		mergedConf.ResponseWriteTimeout = defaultConf.ResponseWriteTimeout
+	}
+
+	return mergedConf, true
+}
