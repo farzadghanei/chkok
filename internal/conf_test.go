@@ -37,11 +37,6 @@ func TestReadConf(t *testing.T) {
 	if runner.Timeout.Minutes() != float64(wantMinutes) {
 		t.Errorf("invalid read conf default runner, want %v timeout got %v", wantMinutes, runner.Timeout.Minutes())
 	}
-	var wantShutdownAfterRequests uint32 = 100
-	if runner.ShutdownAfterRequests != wantShutdownAfterRequests {
-		t.Errorf("invalid read conf, want %v shutdown after requests got %v",
-			wantShutdownAfterRequests, runner.ShutdownAfterRequests)
-	}
 	etcChecks, ok := conf.CheckSuites["etc"]
 	if !ok {
 		t.Errorf("read conf found no etc checks")
@@ -66,18 +61,19 @@ func TestReadConf(t *testing.T) {
 }
 
 func TestGetConfRunner(t *testing.T) {
+	var shutdownSignalHeader = "Test-Shutdown"
 	runners := ConfRunners{
 		"default": ConfRunner{
-			Timeout:               5 * time.Second,
-			ShutdownAfterRequests: 10,
-			ListenAddress:         "localhost:8080",
+			Timeout:       5 * time.Second,
+			ListenAddress: "localhost:8080",
 		},
+		"testMinimalHttpRunner": ConfRunner{},
 		"testHttpRunner": ConfRunner{
-			Timeout:               10 * time.Second,
-			ShutdownAfterRequests: 20,
-			ListenAddress:         "localhost:9090",
-			RequestReadTimeout:    5 * time.Second,
-			ResponseWriteTimeout:  5 * time.Second,
+			Timeout:              10 * time.Second,
+			ShutdownSignalHeader: &shutdownSignalHeader,
+			ListenAddress:        "localhost:9090",
+			RequestReadTimeout:   5 * time.Second,
+			ResponseWriteTimeout: 5 * time.Second,
 		},
 	}
 
@@ -91,11 +87,11 @@ func TestGetConfRunner(t *testing.T) {
 			name:       "Existing runner",
 			runnerName: "testHttpRunner",
 			expectedRunner: ConfRunner{
-				Timeout:               10 * time.Second,
-				ShutdownAfterRequests: 20,
-				ListenAddress:         "localhost:9090",
-				RequestReadTimeout:    5 * time.Second,
-				ResponseWriteTimeout:  5 * time.Second,
+				Timeout:              10 * time.Second,
+				ShutdownSignalHeader: &shutdownSignalHeader,
+				ListenAddress:        "localhost:9090",
+				RequestReadTimeout:   5 * time.Second,
+				ResponseWriteTimeout: 5 * time.Second,
 			},
 			expectedExists: true,
 		},
@@ -103,6 +99,18 @@ func TestGetConfRunner(t *testing.T) {
 			name:           "Non-existing runner",
 			runnerName:     "nonExistingRunner",
 			expectedRunner: runners["default"],
+			expectedExists: true,
+		},
+		{
+			name:       "Minimal http runner",
+			runnerName: "testMinimalHttpRunner",
+			expectedRunner: ConfRunner{
+				Timeout:              5 * time.Second,
+				ShutdownSignalHeader: nil,
+				ListenAddress:        "localhost:8080",
+				RequestReadTimeout:   0,
+				ResponseWriteTimeout: 0,
+			},
 			expectedExists: true,
 		},
 		{

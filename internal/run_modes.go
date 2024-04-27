@@ -43,7 +43,10 @@ func httpRequestAsString(r *http.Request) string {
 // RunModeHTTP runs app in http server mode using the provided config, return exit code
 func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger) int {
 	timeout := conf.Timeout
-	shutdownAfterRequests := conf.ShutdownAfterRequests
+	shutdownSignalHeaderValue := ""
+	if conf.ShutdownSignalHeader != nil {
+		shutdownSignalHeaderValue = *conf.ShutdownSignalHeader
+	}
 	listenAddress := conf.ListenAddress
 	requestReadTimeout := conf.RequestReadTimeout
 	responseWriteTimeout := conf.ResponseWriteTimeout
@@ -101,7 +104,7 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 		for request = range reqHandlerChan {
 			atomic.AddUint32(&count, 1)
 			logger.Printf("request [%v] is processed: %v", count, httpRequestAsString(request))
-			if shutdownAfterRequests > 0 && atomic.LoadUint32(&count) >= shutdownAfterRequests {
+			if shutdownSignalHeaderValue != "" && request.Header.Get("X-Server-Shutdown") == shutdownSignalHeaderValue {
 				if err := server.Shutdown(timeoutCtx); err != nil {
 					logger.Printf("http server shutdown failed: %v", err)
 				}
@@ -113,11 +116,9 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	logger.Printf("starting http server ...")
 	err := server.ListenAndServe()
 	close(reqHandlerChan)
-	if err != nil {
-		if atomic.LoadUint32(&count) < 1 { // server didn't handle any requests
-			logger.Printf("http server failed to start: %v", err)
-			return ExSoftware
-		}
+	if err != nil && err != http.ErrServerClosed {
+		logger.Printf("http server failed to start: %v", err)
+		return ExSoftware
 	}
 	logger.Printf("http server shutdown!")
 	return ExOK

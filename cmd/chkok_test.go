@@ -46,6 +46,7 @@ func TestRunHttp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
+	req.Header.Set("X-Server-Shutdown", "test-shutdown-signal") // shutdown the server after the request
 
 	// Send the request multiple times, waiting for the server to
 	// start up and respond

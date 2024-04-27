@@ -21,11 +21,11 @@ type Conf struct {
 
 // ConfRunner is config for the check runners
 type ConfRunner struct {
-	Timeout               time.Duration
-	ShutdownAfterRequests uint32        `yaml:"shutdown_after_requests"`
-	ListenAddress         string        `yaml:"listen_address"`
-	RequestReadTimeout    time.Duration `yaml:"request_read_timeout"`
-	ResponseWriteTimeout  time.Duration `yaml:"response_write_timeout"`
+	Timeout              time.Duration
+	ShutdownSignalHeader *string       `yaml:"shutdown_signal_header"`
+	ListenAddress        string        `yaml:"listen_address"`
+	RequestReadTimeout   time.Duration `yaml:"request_read_timeout"`
+	ResponseWriteTimeout time.Duration `yaml:"response_write_timeout"`
 }
 
 // ConfCheckSpec is the spec for each check configuration
@@ -73,18 +73,18 @@ func GetConfRunner(runners *ConfRunners, name string) (ConfRunner, bool) {
 
 	// Merge the requested runner with the default runner
 	mergedConf := ConfRunner{
-		Timeout:               namedConf.Timeout,
-		ShutdownAfterRequests: namedConf.ShutdownAfterRequests,
-		ListenAddress:         namedConf.ListenAddress,
-		RequestReadTimeout:    namedConf.RequestReadTimeout,
-		ResponseWriteTimeout:  namedConf.ResponseWriteTimeout,
+		Timeout:              namedConf.Timeout,
+		ShutdownSignalHeader: namedConf.ShutdownSignalHeader,
+		ListenAddress:        namedConf.ListenAddress,
+		RequestReadTimeout:   namedConf.RequestReadTimeout,
+		ResponseWriteTimeout: namedConf.ResponseWriteTimeout,
 	}
 
 	if mergedConf.Timeout == 0 {
 		mergedConf.Timeout = defaultConf.Timeout
 	}
-	if mergedConf.ShutdownAfterRequests == 0 {
-		mergedConf.ShutdownAfterRequests = defaultConf.ShutdownAfterRequests
+	if mergedConf.ShutdownSignalHeader == nil {
+		mergedConf.ShutdownSignalHeader = defaultConf.ShutdownSignalHeader
 	}
 	if mergedConf.ListenAddress == "" {
 		mergedConf.ListenAddress = defaultConf.ListenAddress
