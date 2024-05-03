@@ -4,7 +4,8 @@ runners:
   default:
     timeout: 5m
     listen_address: "127.0.0.1:51234"
-  http:
+  cli: {}  # override default runner only for CLI mode
+  http:  # override default runner only for HTTP mode
     # shutdown_signal_header is mainly useful for testing http mode, do not set it in production
     # if set, better be treated like a secret, and a secure transport layer should be used.
     # this is the value set on "X-Shutdown-Signal" header in the http request

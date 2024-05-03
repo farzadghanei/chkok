@@ -21,14 +21,14 @@ type Conf struct {
 
 // ConfRunner is config for the check runners
 type ConfRunner struct {
-	Timeout              time.Duration
-	ShutdownSignalHeader *string       `yaml:"shutdown_signal_header"`
-	ListenAddress        string        `yaml:"listen_address"`
-	RequestReadTimeout   time.Duration `yaml:"request_read_timeout"`
-	ResponseWriteTimeout time.Duration `yaml:"response_write_timeout"`
-	ResponseOK           string        `yaml:"response_ok"`
-	ResponseFailed       string        `yaml:"response_failed"`
-	ResponseTimeout      string        `yaml:"response_timeout"`
+	Timeout              *time.Duration
+	ShutdownSignalHeader *string        `yaml:"shutdown_signal_header"`
+	ListenAddress        string         `yaml:"listen_address"`
+	RequestReadTimeout   *time.Duration `yaml:"request_read_timeout"`
+	ResponseWriteTimeout *time.Duration `yaml:"response_write_timeout"`
+	ResponseOK           *string        `yaml:"response_ok"`
+	ResponseFailed       *string        `yaml:"response_failed"`
+	ResponseTimeout      *string        `yaml:"response_timeout"`
 }
 
 // ConfCheckSpec is the spec for each check configuration
@@ -59,45 +59,25 @@ func ReadConf(path string) (*Conf, error) {
 
 // GetDefaultConfRunner returns a ConfRunner based on the default configuration
 func GetDefaultConfRunner(runners *ConfRunners) ConfRunner {
-	defaultRunner := ConfRunner{
-		Timeout:              0,
+	var timeout, readTimeout, writeTimout time.Duration = 0 * time.Second, 30 * time.Second, 30 * time.Second
+	var respOK, respFailed, respTimeout string = "OK", "FAILED", "TIMEOUT"
+
+	baseConf := ConfRunner{
+		Timeout:              &timeout,
 		ShutdownSignalHeader: nil,
 		ListenAddress:        "127.0.0.1:8880",
-		RequestReadTimeout:   30 * time.Second,
-		ResponseWriteTimeout: 30 * time.Second,
-		ResponseOK:           "OK",
-		ResponseFailed:       "FAILED",
-		ResponseTimeout:      "TIMEOUT",
+		RequestReadTimeout:   &readTimeout,
+		ResponseWriteTimeout: &writeTimout,
+		ResponseOK:           &respOK,
+		ResponseFailed:       &respFailed,
+		ResponseTimeout:      &respTimeout,
 	}
 
 	if defaultConf, defaultExists := (*runners)["default"]; defaultExists {
-		if defaultConf.Timeout != 0 {
-			defaultRunner.Timeout = defaultConf.Timeout
-		}
-		if defaultConf.ShutdownSignalHeader != nil {
-			defaultRunner.ShutdownSignalHeader = defaultConf.ShutdownSignalHeader
-		}
-		if defaultConf.ListenAddress != "" {
-			defaultRunner.ListenAddress = defaultConf.ListenAddress
-		}
-		if defaultConf.RequestReadTimeout != 0 {
-			defaultRunner.RequestReadTimeout = defaultConf.RequestReadTimeout
-		}
-		if defaultConf.ResponseWriteTimeout != 0 {
-			defaultRunner.ResponseWriteTimeout = defaultConf.ResponseWriteTimeout
-		}
-		if defaultConf.ResponseOK != "" {
-			defaultRunner.ResponseOK = defaultConf.ResponseOK
-		}
-		if defaultConf.ResponseFailed != "" {
-			defaultRunner.ResponseFailed = defaultConf.ResponseFailed
-		}
-		if defaultConf.ResponseTimeout != "" {
-			defaultRunner.ResponseTimeout = defaultConf.ResponseTimeout
-		}
+		baseConf = MergedConfRunners(&baseConf, &defaultConf)
 	}
 
-	return defaultRunner
+	return baseConf
 }
 
 // GetConfRunner returns the runner config for the name merged with the default, and bool if it exists
@@ -110,41 +90,55 @@ func GetConfRunner(runners *ConfRunners, name string) (ConfRunner, bool) {
 	}
 
 	// Merge the requested runner with the default runner
-	mergedConf := ConfRunner{
-		Timeout:              namedConf.Timeout,
-		ShutdownSignalHeader: namedConf.ShutdownSignalHeader,
-		ListenAddress:        namedConf.ListenAddress,
-		RequestReadTimeout:   namedConf.RequestReadTimeout,
-		ResponseWriteTimeout: namedConf.ResponseWriteTimeout,
-		ResponseOK:           namedConf.ResponseOK,
-		ResponseFailed:       namedConf.ResponseFailed,
-		ResponseTimeout:      namedConf.ResponseTimeout,
-	}
-
-	if mergedConf.Timeout == 0 {
-		mergedConf.Timeout = defaultConf.Timeout
-	}
-	if mergedConf.ShutdownSignalHeader == nil {
-		mergedConf.ShutdownSignalHeader = defaultConf.ShutdownSignalHeader
-	}
-	if mergedConf.ListenAddress == "" {
-		mergedConf.ListenAddress = defaultConf.ListenAddress
-	}
-	if mergedConf.RequestReadTimeout == 0 {
-		mergedConf.RequestReadTimeout = defaultConf.RequestReadTimeout
-	}
-	if mergedConf.ResponseWriteTimeout == 0 {
-		mergedConf.ResponseWriteTimeout = defaultConf.ResponseWriteTimeout
-	}
-	if mergedConf.ResponseOK == "" {
-		mergedConf.ResponseOK = defaultConf.ResponseOK
-	}
-	if mergedConf.ResponseFailed == "" {
-		mergedConf.ResponseFailed = defaultConf.ResponseFailed
-	}
-	if mergedConf.ResponseTimeout == "" {
-		mergedConf.ResponseTimeout = defaultConf.ResponseTimeout
-	}
+	mergedConf := MergedConfRunners(&defaultConf, &namedConf)
 
 	return mergedConf, true
+}
+
+// MergedConfRunners merges the baseConf with the overrideConf and returns the merged ConfRunner
+func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
+	mergedConf := ConfRunner{
+		Timeout:              overrideConf.Timeout,
+		ShutdownSignalHeader: overrideConf.ShutdownSignalHeader,
+		ListenAddress:        overrideConf.ListenAddress,
+		RequestReadTimeout:   overrideConf.RequestReadTimeout,
+		ResponseWriteTimeout: overrideConf.ResponseWriteTimeout,
+		ResponseOK:           overrideConf.ResponseOK,
+		ResponseFailed:       overrideConf.ResponseFailed,
+		ResponseTimeout:      overrideConf.ResponseTimeout,
+	}
+
+	if mergedConf.Timeout == nil {
+		mergedConf.Timeout = baseConf.Timeout
+	}
+
+	if mergedConf.ShutdownSignalHeader == nil {
+		mergedConf.ShutdownSignalHeader = baseConf.ShutdownSignalHeader
+	}
+
+	if mergedConf.ListenAddress == "" {
+		mergedConf.ListenAddress = baseConf.ListenAddress
+	}
+
+	if mergedConf.RequestReadTimeout == nil {
+		mergedConf.RequestReadTimeout = baseConf.RequestReadTimeout
+	}
+
+	if mergedConf.ResponseWriteTimeout == nil {
+		mergedConf.ResponseWriteTimeout = baseConf.ResponseWriteTimeout
+	}
+
+	if mergedConf.ResponseOK == nil {
+		mergedConf.ResponseOK = baseConf.ResponseOK
+	}
+
+	if mergedConf.ResponseFailed == nil {
+		mergedConf.ResponseFailed = baseConf.ResponseFailed
+	}
+
+	if mergedConf.ResponseTimeout == nil {
+		mergedConf.ResponseTimeout = baseConf.ResponseTimeout
+	}
+
+	return mergedConf
 }
