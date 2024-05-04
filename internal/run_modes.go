@@ -17,7 +17,7 @@ const (
 
 // RunModeCLI run app in CLI mode using the provided configs, return exit code
 func RunModeCLI(checkGroups *CheckSuites, conf *ConfRunner, output io.Writer, logger *log.Logger) int {
-	runner := Runner{Log: logger, Timeout: conf.Timeout}
+	runner := Runner{Log: logger, Timeout: *conf.Timeout}
 	passed, failed, timedout := runChecks(&runner, checkGroups, logger)
 	total := passed + failed + timedout
 	if timedout > 0 {
@@ -38,14 +38,17 @@ func httpRequestAsString(r *http.Request) string {
 
 // RunModeHTTP runs app in http server mode using the provided config, return exit code
 func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger) int {
-	timeout := conf.Timeout
 	shutdownSignalHeaderValue := ""
 	if conf.ShutdownSignalHeader != nil {
 		shutdownSignalHeaderValue = *conf.ShutdownSignalHeader
 	}
 	listenAddress := conf.ListenAddress
-	requestReadTimeout := conf.RequestReadTimeout
-	responseWriteTimeout := conf.ResponseWriteTimeout
+	timeout := *conf.Timeout
+	responseOK := *conf.ResponseOK
+	responseFailed := *conf.ResponseFailed
+	responseTimeout := *conf.ResponseTimeout
+	requestReadTimeout := *conf.RequestReadTimeout
+	responseWriteTimeout := *conf.ResponseWriteTimeout
 
 	runner := Runner{Log: logger, Timeout: timeout}
 
@@ -56,13 +59,13 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 		_, failed, timedout := runChecks(&runner, checkGroups, logger)
 		if timedout > 0 {
 			w.WriteHeader(http.StatusGatewayTimeout) // 504
-			fmt.Fprintf(w, conf.ResponseTimeout)
+			fmt.Fprint(w, responseTimeout)
 		} else if failed > 0 {
 			w.WriteHeader(http.StatusInternalServerError) // 500
-			fmt.Fprintf(w, conf.ResponseFailed)
+			fmt.Fprint(w, responseFailed)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, conf.ResponseOK)
+			fmt.Fprint(w, responseOK)
 		}
 		reqHandlerChan <- r
 	}
@@ -70,11 +73,12 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	http.HandleFunc("/", httpHandler)
 
 	server := &http.Server{
-		Addr:         listenAddress,
-		Handler:      nil, // use http.DefaultServeMux
-		ReadTimeout:  requestReadTimeout,
-		WriteTimeout: responseWriteTimeout,
-		IdleTimeout:  0 * time.Second, // set to 0 so uses read timeout
+		Addr:           listenAddress,
+		Handler:        nil, // use http.DefaultServeMux
+		ReadTimeout:    requestReadTimeout,
+		WriteTimeout:   responseWriteTimeout,
+		IdleTimeout:    0 * time.Second, // set to 0 so uses read timeout
+		MaxHeaderBytes: *conf.MaxHeaderBytes,
 	}
 
 	var count uint32 = 0
