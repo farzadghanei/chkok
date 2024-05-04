@@ -34,8 +34,12 @@ func TestReadConf(t *testing.T) {
 		t.Errorf("invalid read conf, want default runner")
 	}
 	wantMinutes := 5
+	wantResponseOK := "↑" // test unicode support
 	if runner.Timeout.Minutes() != float64(wantMinutes) {
 		t.Errorf("invalid read conf default runner, want %v timeout got %v", wantMinutes, runner.Timeout.Minutes())
+	}
+	if *runner.ResponseOK != wantResponseOK {
+		t.Errorf("invalid read conf default runner, want %v response got %v", wantResponseOK, runner.ResponseOK)
 	}
 	etcChecks, ok := conf.CheckSuites["etc"]
 	if !ok {
