@@ -73,11 +73,12 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	http.HandleFunc("/", httpHandler)
 
 	server := &http.Server{
-		Addr:         listenAddress,
-		Handler:      nil, // use http.DefaultServeMux
-		ReadTimeout:  requestReadTimeout,
-		WriteTimeout: responseWriteTimeout,
-		IdleTimeout:  0 * time.Second, // set to 0 so uses read timeout
+		Addr:           listenAddress,
+		Handler:        nil, // use http.DefaultServeMux
+		ReadTimeout:    requestReadTimeout,
+		WriteTimeout:   responseWriteTimeout,
+		IdleTimeout:    0 * time.Second, // set to 0 so uses read timeout
+		MaxHeaderBytes: *conf.MaxHeaderBytes,
 	}
 
 	var count uint32 = 0

@@ -23,6 +23,7 @@ type Conf struct {
 type ConfRunner struct {
 	Timeout              *time.Duration
 	ShutdownSignalHeader *string        `yaml:"shutdown_signal_header"`
+	MaxHeaderBytes       *int           `yaml:"max_header_bytes"`
 	ListenAddress        string         `yaml:"listen_address"`
 	RequestReadTimeout   *time.Duration `yaml:"request_read_timeout"`
 	ResponseWriteTimeout *time.Duration `yaml:"response_write_timeout"`
@@ -60,11 +61,13 @@ func ReadConf(path string) (*Conf, error) {
 // GetDefaultConfRunner returns a ConfRunner based on the default configuration
 func GetDefaultConfRunner(runners *ConfRunners) ConfRunner {
 	var timeout, readTimeout, writeTimout time.Duration = 5 * time.Minute, 30 * time.Second, 30 * time.Second
+	var maxHeaderBytes int = 8 * 1024
 	var respOK, respFailed, respTimeout string = "OK", "FAILED", "TIMEOUT"
 
 	baseConf := ConfRunner{
 		Timeout:              &timeout,
 		ShutdownSignalHeader: nil,
+		MaxHeaderBytes:       &maxHeaderBytes,
 		ListenAddress:        "127.0.0.1:8880",
 		RequestReadTimeout:   &readTimeout,
 		ResponseWriteTimeout: &writeTimout,
@@ -106,6 +109,7 @@ func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 		ResponseOK:           overrideConf.ResponseOK,
 		ResponseFailed:       overrideConf.ResponseFailed,
 		ResponseTimeout:      overrideConf.ResponseTimeout,
+		MaxHeaderBytes:       overrideConf.MaxHeaderBytes,
 	}
 
 	if mergedConf.Timeout == nil {
@@ -114,6 +118,10 @@ func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 
 	if mergedConf.ShutdownSignalHeader == nil {
 		mergedConf.ShutdownSignalHeader = baseConf.ShutdownSignalHeader
+	}
+
+	if mergedConf.MaxHeaderBytes == nil {
+		mergedConf.MaxHeaderBytes = baseConf.MaxHeaderBytes
 	}
 
 	if mergedConf.ListenAddress == "" {

@@ -17,6 +17,7 @@ runners:
     # request_read_timeout: 2s
     # response_write_timeout: 2s
     # timeout: 5s
+    # max_header_bytes: 8192
 
 
 check_suites:

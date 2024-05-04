@@ -74,6 +74,8 @@ func TestGetDefaultConfRunner(t *testing.T) {
 	respNo := "NO"
 	respMaybe := "MAYBE"
 
+	wantMaxHeaderBytes := 8 * 1024
+
 	runners := ConfRunners{
 		"default": ConfRunner{
 			Timeout:              &wantTimeout,
@@ -129,6 +131,9 @@ func TestGetDefaultConfRunner(t *testing.T) {
 	}
 	if *defaultRunner.ResponseTimeout != "TIMEOUT" {
 		t.Errorf("Expected ResponseTimeout to be TIMEOUT, got %s", *defaultRunner.ResponseTimeout)
+	}
+	if *defaultRunner.MaxHeaderBytes != wantMaxHeaderBytes {
+		t.Errorf("Expected MaxHeaderBytes to be %v, got %v", wantMaxHeaderBytes, *defaultRunner.MaxHeaderBytes)
 	}
 }
 
