@@ -59,7 +59,7 @@ func ReadConf(path string) (*Conf, error) {
 
 // GetDefaultConfRunner returns a ConfRunner based on the default configuration
 func GetDefaultConfRunner(runners *ConfRunners) ConfRunner {
-	var timeout, readTimeout, writeTimout time.Duration = 0 * time.Second, 30 * time.Second, 30 * time.Second
+	var timeout, readTimeout, writeTimout time.Duration = 5 * time.Minute, 30 * time.Second, 30 * time.Second
 	var respOK, respFailed, respTimeout string = "OK", "FAILED", "TIMEOUT"
 
 	baseConf := ConfRunner{

@@ -115,7 +115,7 @@ func TestGetDefaultConfRunner(t *testing.T) {
 	// Test case where default key does not exist
 	runners = ConfRunners{}
 	defaultRunner = GetDefaultConfRunner(&runners)
-	if *defaultRunner.Timeout != 0 {
+	if *defaultRunner.Timeout != 5*time.Minute {
 		t.Errorf("Expected Timeout to be 0, got %v", *defaultRunner.Timeout)
 	}
 	if defaultRunner.ListenAddress != "127.0.0.1:8880" {
