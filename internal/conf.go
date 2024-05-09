@@ -1,6 +1,7 @@
 package chkok
 
 import (
+	"maps"
 	"os"
 	"time"
 
@@ -21,17 +22,19 @@ type Conf struct {
 
 // ConfRunner is config for the check runners
 type ConfRunner struct {
-	Timeout               *time.Duration
-	ShutdownSignalHeader  *string        `yaml:"shutdown_signal_header"`
-	MaxHeaderBytes        *int           `yaml:"max_header_bytes"`
-	MaxConcurrentRequests *int           `yaml:"max_concurrent_requests"`
-	ListenAddress         string         `yaml:"listen_address"`
-	RequestReadTimeout    *time.Duration `yaml:"request_read_timeout"`
-	ResponseWriteTimeout  *time.Duration `yaml:"response_write_timeout"`
-	ResponseOK            *string        `yaml:"response_ok"`
-	ResponseFailed        *string        `yaml:"response_failed"`
-	ResponseTimeout       *string        `yaml:"response_timeout"`
-	ResponseUnavailable   *string        `yaml:"response_unavailable"`
+	Timeout                *time.Duration
+	ShutdownSignalHeader   *string           `yaml:"shutdown_signal_header"`
+	MaxHeaderBytes         *int              `yaml:"max_header_bytes"`
+	MaxConcurrentRequests  *int              `yaml:"max_concurrent_requests"`
+	ListenAddress          string            `yaml:"listen_address"`
+	RequestReadTimeout     *time.Duration    `yaml:"request_read_timeout"`
+	RequestRequiredHeaders map[string]string `yaml:"request_required_headers"`
+	ResponseWriteTimeout   *time.Duration    `yaml:"response_write_timeout"`
+	ResponseOK             *string           `yaml:"response_ok"`
+	ResponseFailed         *string           `yaml:"response_failed"`
+	ResponseTimeout        *string           `yaml:"response_timeout"`
+	ResponseUnavailable    *string           `yaml:"response_unavailable"`
+	ResponseInvalidRequest *string           `yaml:"response_invalid_request"`
 }
 
 // ConfCheckSpec is the spec for each check configuration
@@ -66,20 +69,22 @@ func GetBaseConfRunner() ConfRunner {
 	var maxHeaderBytes int = 8 * 1024
 	var MaxConcurrentRequests int = 1
 	var respOK, respFailed, respTimeout string = "OK", "FAILED", "TIMEOUT"
-	var respUnavailable string = "UNAVAILABLE"
+	var respUnavailable, respInvalidRequest string = "UNAVAILABLE", "INVALID REQUEST"
 
 	baseConf := ConfRunner{
-		Timeout:               &timeout,
-		ShutdownSignalHeader:  nil,
-		MaxHeaderBytes:        &maxHeaderBytes,
-		ListenAddress:         "127.0.0.1:8880",
-		RequestReadTimeout:    &readTimeout,
-		ResponseWriteTimeout:  &writeTimout,
-		ResponseOK:            &respOK,
-		ResponseFailed:        &respFailed,
-		ResponseTimeout:       &respTimeout,
-		ResponseUnavailable:   &respUnavailable,
-		MaxConcurrentRequests: &MaxConcurrentRequests,
+		Timeout:                &timeout,
+		ShutdownSignalHeader:   nil,
+		MaxHeaderBytes:         &maxHeaderBytes,
+		ListenAddress:          "127.0.0.1:8880",
+		RequestReadTimeout:     &readTimeout,
+		RequestRequiredHeaders: map[string]string{},
+		ResponseWriteTimeout:   &writeTimout,
+		ResponseOK:             &respOK,
+		ResponseFailed:         &respFailed,
+		ResponseTimeout:        &respTimeout,
+		ResponseInvalidRequest: &respInvalidRequest,
+		ResponseUnavailable:    &respUnavailable,
+		MaxConcurrentRequests:  &MaxConcurrentRequests,
 	}
 	return baseConf
 }
@@ -134,6 +139,13 @@ func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 		mergedConf.RequestReadTimeout = baseConf.RequestReadTimeout
 	}
 
+	// Merge the request required headers map with the baseConf
+	for key, value := range baseConf.RequestRequiredHeaders {
+		if _, exists := mergedConf.RequestRequiredHeaders[key]; !exists {
+			mergedConf.RequestRequiredHeaders[key] = value
+		}
+	}
+
 	if mergedConf.ResponseWriteTimeout == nil {
 		mergedConf.ResponseWriteTimeout = baseConf.ResponseWriteTimeout
 	}
@@ -158,22 +170,30 @@ func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 		mergedConf.MaxConcurrentRequests = baseConf.MaxConcurrentRequests
 	}
 
+	if mergedConf.ResponseInvalidRequest == nil {
+		mergedConf.ResponseInvalidRequest = baseConf.ResponseInvalidRequest
+	}
+
 	return mergedConf
 }
 
 // CopyConfRunner returns a copy of the ConfRunner with the same values
 func CopyConfRunner(conf *ConfRunner) ConfRunner {
-	return ConfRunner{
-		Timeout:               conf.Timeout,
-		ShutdownSignalHeader:  conf.ShutdownSignalHeader,
-		ListenAddress:         conf.ListenAddress,
-		RequestReadTimeout:    conf.RequestReadTimeout,
-		ResponseWriteTimeout:  conf.ResponseWriteTimeout,
-		ResponseOK:            conf.ResponseOK,
-		ResponseFailed:        conf.ResponseFailed,
-		ResponseTimeout:       conf.ResponseTimeout,
-		ResponseUnavailable:   conf.ResponseUnavailable,
-		MaxHeaderBytes:        conf.MaxHeaderBytes,
-		MaxConcurrentRequests: conf.MaxConcurrentRequests,
+	newConfRunner := ConfRunner{
+		Timeout:                conf.Timeout,
+		ShutdownSignalHeader:   conf.ShutdownSignalHeader,
+		ListenAddress:          conf.ListenAddress,
+		RequestReadTimeout:     conf.RequestReadTimeout,
+		RequestRequiredHeaders: map[string]string{},
+		ResponseWriteTimeout:   conf.ResponseWriteTimeout,
+		ResponseOK:             conf.ResponseOK,
+		ResponseFailed:         conf.ResponseFailed,
+		ResponseTimeout:        conf.ResponseTimeout,
+		ResponseUnavailable:    conf.ResponseUnavailable,
+		ResponseInvalidRequest: conf.ResponseInvalidRequest,
+		MaxHeaderBytes:         conf.MaxHeaderBytes,
+		MaxConcurrentRequests:  conf.MaxConcurrentRequests,
 	}
+	maps.Copy(newConfRunner.RequestRequiredHeaders, conf.RequestRequiredHeaders)
+	return newConfRunner
 }

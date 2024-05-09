@@ -1,3 +1,4 @@
+---
 # https://golangci-lint.run/usage/configuration/
 
 run:
@@ -66,7 +67,7 @@ linters-settings:
       - performance
       - style
     disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
+      - dupImport  # https://github.com/go-critic/go-critic/issues/845
       - ifElseChain
       - octalLiteral
       - whyNoLint
@@ -98,7 +99,7 @@ linters-settings:
         # There are three different modes: `original`, `strict`, and `lax`.
         # Default: "original"
         list-mode: original
-        # List of file globs that will match this list of settings to compare against.
+        # File globs that will match this list of settings to compare against.
         # Default: $all
         files:
           - "$all"

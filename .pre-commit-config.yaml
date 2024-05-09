@@ -1,3 +1,4 @@
+---
 exclude: "^docs/|/.vscode/"
 default_stages: [commit]
 
