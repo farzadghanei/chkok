@@ -42,19 +42,24 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	if conf.ShutdownSignalHeader != nil {
 		shutdownSignalHeaderValue = *conf.ShutdownSignalHeader
 	}
-	listenAddress := conf.ListenAddress
-	timeout := *conf.Timeout
+	maxConcurrentRequests := *conf.MaxConcurrentRequests
 	responseOK := *conf.ResponseOK
 	responseFailed := *conf.ResponseFailed
 	responseTimeout := *conf.ResponseTimeout
-	requestReadTimeout := *conf.RequestReadTimeout
-	responseWriteTimeout := *conf.ResponseWriteTimeout
+	responseUnavailable := *conf.ResponseUnavailable
 
-	runner := Runner{Log: logger, Timeout: timeout}
+	runner := Runner{Log: logger, Timeout: *conf.Timeout}
 
+	var runningRequests atomic.Int32
 	var reqHandlerChan = make(chan *http.Request, 1)
 
 	httpHandler := func(w http.ResponseWriter, r *http.Request) {
+		runningRequests.Add(1)
+		if maxConcurrentRequests > 0 && runningRequests.Load() > int32(maxConcurrentRequests) {
+			w.WriteHeader(http.StatusServiceUnavailable) // 503
+			fmt.Fprint(w, responseUnavailable)
+		}
+		defer runningRequests.Add(-1)
 		logger.Printf("processing http request: %s", httpRequestAsString(r))
 		_, failed, timedout := runChecks(&runner, checkGroups, logger)
 		if timedout > 0 {
@@ -73,10 +78,10 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	http.HandleFunc("/", httpHandler)
 
 	server := &http.Server{
-		Addr:           listenAddress,
+		Addr:           conf.ListenAddress,
 		Handler:        nil, // use http.DefaultServeMux
-		ReadTimeout:    requestReadTimeout,
-		WriteTimeout:   responseWriteTimeout,
+		ReadTimeout:    *conf.RequestReadTimeout,
+		WriteTimeout:   *conf.ResponseWriteTimeout,
 		IdleTimeout:    0 * time.Second, // set to 0 so uses read timeout
 		MaxHeaderBytes: *conf.MaxHeaderBytes,
 	}
@@ -101,7 +106,7 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 		}
 	}()
 
-	logger.Printf("starting http server listening on %s", listenAddress)
+	logger.Printf("starting http server listening on %s", conf.ListenAddress)
 	err := server.ListenAndServe()
 	close(reqHandlerChan)
 	if err != nil && err != http.ErrServerClosed {

@@ -74,8 +74,6 @@ func TestGetDefaultConfRunner(t *testing.T) {
 	respNo := "NO"
 	respMaybe := "MAYBE"
 
-	wantMaxHeaderBytes := 8 * 1024
-
 	runners := ConfRunners{
 		"default": ConfRunner{
 			Timeout:              &wantTimeout,
@@ -115,25 +113,30 @@ func TestGetDefaultConfRunner(t *testing.T) {
 	}
 
 	// Test case where default key does not exist
+	baseRunner := GetBaseConfRunner()
 	runners = ConfRunners{}
 	defaultRunner = GetDefaultConfRunner(&runners)
-	if *defaultRunner.Timeout != 5*time.Minute {
-		t.Errorf("Expected Timeout to be 0, got %v", *defaultRunner.Timeout)
+	if *defaultRunner.Timeout != *baseRunner.Timeout {
+		t.Errorf("Timeout want %v, got %v", *baseRunner.Timeout, *defaultRunner.Timeout)
 	}
-	if defaultRunner.ListenAddress != "127.0.0.1:8880" {
-		t.Errorf("Expected ListenAddress to be 127.0.0.1:8080, got %s", defaultRunner.ListenAddress)
+	if defaultRunner.ListenAddress != baseRunner.ListenAddress {
+		t.Errorf("ListenAddress want %v, got %s", baseRunner.ListenAddress, defaultRunner.ListenAddress)
 	}
-	if *defaultRunner.ResponseOK != "OK" {
-		t.Errorf("Expected ResponseOK to be OK, got %s", *defaultRunner.ResponseOK)
+	if *defaultRunner.ResponseOK != *baseRunner.ResponseOK {
+		t.Errorf("ResponseOK want %v, got %s", *baseRunner.ResponseOK, *defaultRunner.ResponseOK)
 	}
-	if *defaultRunner.ResponseFailed != "FAILED" {
-		t.Errorf("Expected ResponseFailed to be FAILED, got %s", *defaultRunner.ResponseFailed)
+	if *defaultRunner.ResponseFailed != *baseRunner.ResponseFailed {
+		t.Errorf("ResponseFailed want %v, got %s", *baseRunner.ResponseFailed, *defaultRunner.ResponseFailed)
 	}
-	if *defaultRunner.ResponseTimeout != "TIMEOUT" {
-		t.Errorf("Expected ResponseTimeout to be TIMEOUT, got %s", *defaultRunner.ResponseTimeout)
+	if *defaultRunner.ResponseTimeout != *baseRunner.ResponseTimeout {
+		t.Errorf("ResponseTimeout want %v, got %s", *baseRunner.ResponseTimeout, *defaultRunner.ResponseTimeout)
 	}
-	if *defaultRunner.MaxHeaderBytes != wantMaxHeaderBytes {
-		t.Errorf("Expected MaxHeaderBytes to be %v, got %v", wantMaxHeaderBytes, *defaultRunner.MaxHeaderBytes)
+	if *defaultRunner.MaxHeaderBytes != *baseRunner.MaxHeaderBytes {
+		t.Errorf("MaxHeaderBytes want %v, got %v", *baseRunner.MaxHeaderBytes, *defaultRunner.MaxHeaderBytes)
+	}
+	if *defaultRunner.MaxConcurrentRequests != *baseRunner.MaxConcurrentRequests {
+		t.Errorf("MaxConcurrentRequests want %v, got %v", *baseRunner.MaxConcurrentRequests,
+			*defaultRunner.MaxConcurrentRequests)
 	}
 }
 
