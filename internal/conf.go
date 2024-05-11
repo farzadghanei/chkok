@@ -119,10 +119,6 @@ func GetConfRunner(runners *ConfRunners, name string) (ConfRunner, bool) {
 func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 	mergedConf := CopyConfRunner(overrideConf)
 
-	if mergedConf.Timeout == nil {
-		mergedConf.Timeout = baseConf.Timeout
-	}
-
 	if mergedConf.ShutdownSignalHeader == nil {
 		mergedConf.ShutdownSignalHeader = baseConf.ShutdownSignalHeader
 	}
@@ -134,10 +130,11 @@ func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 	if mergedConf.ListenAddress == "" {
 		mergedConf.ListenAddress = baseConf.ListenAddress
 	}
-
-	if mergedConf.RequestReadTimeout == nil {
-		mergedConf.RequestReadTimeout = baseConf.RequestReadTimeout
+	if mergedConf.MaxConcurrentRequests == nil {
+		mergedConf.MaxConcurrentRequests = baseConf.MaxConcurrentRequests
 	}
+
+	mergeConfRunnerTimeouts(&mergedConf, baseConf)
 
 	// Merge the request required headers map with the baseConf
 	for key, value := range baseConf.RequestRequiredHeaders {
@@ -146,10 +143,26 @@ func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 		}
 	}
 
+	mergeConfRunnerResponses(&mergedConf, baseConf)
+
+	return mergedConf
+}
+
+// mergeConfRunnerTimeouts merges the timeout fields of the mergedConf with the baseConf in place
+func mergeConfRunnerTimeouts(mergedConf, baseConf *ConfRunner) {
+	if mergedConf.Timeout == nil {
+		mergedConf.Timeout = baseConf.Timeout
+	}
+	if mergedConf.RequestReadTimeout == nil {
+		mergedConf.RequestReadTimeout = baseConf.RequestReadTimeout
+	}
 	if mergedConf.ResponseWriteTimeout == nil {
 		mergedConf.ResponseWriteTimeout = baseConf.ResponseWriteTimeout
 	}
+}
 
+// mergeConfRunnerResponses merges the response fields of the mergedConf with the baseConf in place
+func mergeConfRunnerResponses(mergedConf, baseConf *ConfRunner) {
 	if mergedConf.ResponseOK == nil {
 		mergedConf.ResponseOK = baseConf.ResponseOK
 	}
@@ -166,15 +179,9 @@ func MergedConfRunners(baseConf, overrideConf *ConfRunner) ConfRunner {
 		mergedConf.ResponseUnavailable = baseConf.ResponseUnavailable
 	}
 
-	if mergedConf.MaxConcurrentRequests == nil {
-		mergedConf.MaxConcurrentRequests = baseConf.MaxConcurrentRequests
-	}
-
 	if mergedConf.ResponseInvalidRequest == nil {
 		mergedConf.ResponseInvalidRequest = baseConf.ResponseInvalidRequest
 	}
-
-	return mergedConf
 }
 
 // CopyConfRunner returns a copy of the ConfRunner with the same values
