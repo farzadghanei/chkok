@@ -4,7 +4,6 @@ runners:
   default:
     timeout: 5m
     # response_ok: "OK"
-    response_ok: "↑"  # any unicode string can be used, '↑' is just an example
     # response_fail: "FAILED"
     # response_timeout: "TIMEOUT"
   cli: {}  # override default runner only for CLI mode
@@ -39,7 +38,7 @@ check_suites:
     - type: file
       path: /etc/group
       min_size: 5
-      max_size: 10
+      max_size: 10000
   default:
     - type: file
       path: /unwanted/file
@@ -49,9 +48,9 @@ check_suites:
       address: "localhost:8080"
       absent: true
       timeout: 500ms
-    - type: dial
-      network: tcp
-      address: "localhost:80"
-      timeout: 500ms
+      # - type: dial
+      #   network: tcp
+      #   address: "localhost:80"
+      #   timeout: 500ms
 
 ...
