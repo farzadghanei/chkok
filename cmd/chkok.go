@@ -10,7 +10,8 @@ import (
 	chkok "github.com/farzadghanei/chkok/internal"
 )
 
-const Version string = "0.2.0"
+// Version of the app
+const Version string = "0.3.0"
 
 // ModeHTTP run checks in http server mode
 const ModeHTTP string = "http"
