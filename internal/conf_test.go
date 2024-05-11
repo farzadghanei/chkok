@@ -1,10 +1,12 @@
 package chkok
 
 import (
+	"maps"
 	"testing"
 	"time"
 )
 
+// TestReadConfErrors tests the ReadConf function for error handling
 func TestReadConfErrors(t *testing.T) {
 	var conf *Conf
 	var err error
@@ -74,8 +76,6 @@ func TestGetDefaultConfRunner(t *testing.T) {
 	respNo := "NO"
 	respMaybe := "MAYBE"
 
-	wantMaxHeaderBytes := 8 * 1024
-
 	runners := ConfRunners{
 		"default": ConfRunner{
 			Timeout:              &wantTimeout,
@@ -115,25 +115,30 @@ func TestGetDefaultConfRunner(t *testing.T) {
 	}
 
 	// Test case where default key does not exist
+	baseRunner := GetBaseConfRunner()
 	runners = ConfRunners{}
 	defaultRunner = GetDefaultConfRunner(&runners)
-	if *defaultRunner.Timeout != 5*time.Minute {
-		t.Errorf("Expected Timeout to be 0, got %v", *defaultRunner.Timeout)
+	if *defaultRunner.Timeout != *baseRunner.Timeout {
+		t.Errorf("Timeout want %v, got %v", *baseRunner.Timeout, *defaultRunner.Timeout)
 	}
-	if defaultRunner.ListenAddress != "127.0.0.1:8880" {
-		t.Errorf("Expected ListenAddress to be 127.0.0.1:8080, got %s", defaultRunner.ListenAddress)
+	if defaultRunner.ListenAddress != baseRunner.ListenAddress {
+		t.Errorf("ListenAddress want %v, got %s", baseRunner.ListenAddress, defaultRunner.ListenAddress)
 	}
-	if *defaultRunner.ResponseOK != "OK" {
-		t.Errorf("Expected ResponseOK to be OK, got %s", *defaultRunner.ResponseOK)
+	if *defaultRunner.ResponseOK != *baseRunner.ResponseOK {
+		t.Errorf("ResponseOK want %v, got %s", *baseRunner.ResponseOK, *defaultRunner.ResponseOK)
 	}
-	if *defaultRunner.ResponseFailed != "FAILED" {
-		t.Errorf("Expected ResponseFailed to be FAILED, got %s", *defaultRunner.ResponseFailed)
+	if *defaultRunner.ResponseFailed != *baseRunner.ResponseFailed {
+		t.Errorf("ResponseFailed want %v, got %s", *baseRunner.ResponseFailed, *defaultRunner.ResponseFailed)
 	}
-	if *defaultRunner.ResponseTimeout != "TIMEOUT" {
-		t.Errorf("Expected ResponseTimeout to be TIMEOUT, got %s", *defaultRunner.ResponseTimeout)
+	if *defaultRunner.ResponseTimeout != *baseRunner.ResponseTimeout {
+		t.Errorf("ResponseTimeout want %v, got %s", *baseRunner.ResponseTimeout, *defaultRunner.ResponseTimeout)
 	}
-	if *defaultRunner.MaxHeaderBytes != wantMaxHeaderBytes {
-		t.Errorf("Expected MaxHeaderBytes to be %v, got %v", wantMaxHeaderBytes, *defaultRunner.MaxHeaderBytes)
+	if *defaultRunner.MaxHeaderBytes != *baseRunner.MaxHeaderBytes {
+		t.Errorf("MaxHeaderBytes want %v, got %v", *baseRunner.MaxHeaderBytes, *defaultRunner.MaxHeaderBytes)
+	}
+	if *defaultRunner.MaxConcurrentRequests != *baseRunner.MaxConcurrentRequests {
+		t.Errorf("MaxConcurrentRequests want %v, got %v", *baseRunner.MaxConcurrentRequests,
+			*defaultRunner.MaxConcurrentRequests)
 	}
 }
 
@@ -144,17 +149,19 @@ func TestGetConfRunner(t *testing.T) {
 
 	runners := ConfRunners{
 		"default": ConfRunner{
-			Timeout:              &fiveSecond,
-			ListenAddress:        "localhost:8080",
-			ResponseWriteTimeout: &tenSecond,
+			Timeout:                &fiveSecond,
+			ListenAddress:          "localhost:8080",
+			ResponseWriteTimeout:   &tenSecond,
+			RequestRequiredHeaders: map[string]string{"X-Test-Default": "test"},
 		},
 		"testMinimalHttpRunner": ConfRunner{},
 		"testHttpRunner": ConfRunner{
-			Timeout:              &tenSecond,
-			ShutdownSignalHeader: &shutdownSignalHeader,
-			ListenAddress:        "localhost:9090",
-			RequestReadTimeout:   &fiveSecond,
-			ResponseWriteTimeout: &fiveSecond,
+			Timeout:                &tenSecond,
+			ShutdownSignalHeader:   &shutdownSignalHeader,
+			ListenAddress:          "localhost:9090",
+			RequestReadTimeout:     &fiveSecond,
+			ResponseWriteTimeout:   &fiveSecond,
+			RequestRequiredHeaders: map[string]string{"X-Test-2": "http-test"},
 		},
 	}
 
@@ -170,14 +177,15 @@ func TestGetConfRunner(t *testing.T) {
 			name:       "Existing runner",
 			runnerName: "testHttpRunner",
 			expectedRunner: ConfRunner{
-				Timeout:              &tenSecond,
-				ShutdownSignalHeader: &shutdownSignalHeader,
-				ListenAddress:        "localhost:9090",
-				RequestReadTimeout:   &fiveSecond,
-				ResponseWriteTimeout: &fiveSecond,
-				ResponseOK:           &ok,
-				ResponseFailed:       &failed,
-				ResponseTimeout:      &timeout,
+				Timeout:                &tenSecond,
+				ShutdownSignalHeader:   &shutdownSignalHeader,
+				ListenAddress:          "localhost:9090",
+				RequestReadTimeout:     &fiveSecond,
+				RequestRequiredHeaders: map[string]string{"X-Test-2": "http-test", "X-Test-Default": "test"},
+				ResponseWriteTimeout:   &fiveSecond,
+				ResponseOK:             &ok,
+				ResponseFailed:         &failed,
+				ResponseTimeout:        &timeout,
 			},
 			expectedExists: true,
 		},
@@ -195,42 +203,36 @@ func TestGetConfRunner(t *testing.T) {
 		},
 	}
 
-	var wantTimeout, wantReadTimeout, wantWriteTimeout time.Duration = 0, 0, 0
-	var wantResponseOK, wantResponseFailed, wantResponseTimeout, wantListenAddr string = "", "", "", ""
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			runner, exists := GetConfRunner(&runners, tt.runnerName)
 			if exists != tt.expectedExists {
-				t.Errorf("expected runner exists to be %v, got %v", tt.expectedExists, exists)
+				t.Errorf("exists want %v got %v", tt.expectedExists, exists)
 			}
-			wantTimeout = *tt.expectedRunner.Timeout
-			wantReadTimeout = *tt.expectedRunner.RequestReadTimeout
-			wantWriteTimeout = *tt.expectedRunner.ResponseWriteTimeout
-			wantListenAddr = tt.expectedRunner.ListenAddress
-			wantResponseOK = *tt.expectedRunner.ResponseOK
-			wantResponseFailed = *tt.expectedRunner.ResponseFailed
-			wantResponseTimeout = *tt.expectedRunner.ResponseTimeout
-			if *runner.Timeout != wantTimeout {
-				t.Errorf("expected runner timeout to be %+v, got %+v", wantTimeout, runner.Timeout)
+			expRunner := tt.expectedRunner
+			if *runner.Timeout != *expRunner.Timeout {
+				t.Errorf("timout want %v got %+v", *expRunner.Timeout, runner.Timeout)
 			}
-			if *runner.RequestReadTimeout != wantReadTimeout {
-				t.Errorf("expected runner read timeout to be %+v, got %+v", wantReadTimeout, runner.RequestReadTimeout)
+			if *runner.RequestReadTimeout != *expRunner.RequestReadTimeout {
+				t.Errorf("read timeout want %+v got %+v", *expRunner.Timeout, runner.RequestReadTimeout)
 			}
-			if *runner.ResponseWriteTimeout != wantWriteTimeout {
-				t.Errorf("expected runner write timeout to be %+v, got %+v", wantWriteTimeout, runner.ResponseWriteTimeout)
+			if *runner.ResponseWriteTimeout != *expRunner.ResponseWriteTimeout {
+				t.Errorf("write timeout want %+v got %+v", *expRunner.ResponseWriteTimeout, runner.ResponseWriteTimeout)
 			}
-			if runner.ListenAddress != wantListenAddr {
-				t.Errorf("expected runner listen address to be %s, got %s", wantListenAddr, runner.ListenAddress)
+			if runner.ListenAddress != expRunner.ListenAddress {
+				t.Errorf("listen address want %s got %s", expRunner.ListenAddress, runner.ListenAddress)
 			}
-			if *runner.ResponseOK != wantResponseOK {
-				t.Errorf("expected runner response ok to be %s, got %s", wantResponseOK, *runner.ResponseOK)
+			if *runner.ResponseOK != *expRunner.ResponseOK {
+				t.Errorf("response ok want %s got %s", *expRunner.ResponseOK, *runner.ResponseOK)
 			}
-			if *runner.ResponseFailed != wantResponseFailed {
-				t.Errorf("expected runner response failed to be %s, got %s", wantResponseFailed, *runner.ResponseFailed)
+			if *runner.ResponseFailed != *expRunner.ResponseFailed {
+				t.Errorf("response failed want %s got %s", *expRunner.ResponseFailed, *runner.ResponseFailed)
 			}
-			if *runner.ResponseTimeout != wantResponseTimeout {
-				t.Errorf("expected runner response timeout to be %s, got %s", wantResponseTimeout, *runner.ResponseTimeout)
+			if *runner.ResponseTimeout != *expRunner.ResponseTimeout {
+				t.Errorf("response timeout want %s got %s", *expRunner.ResponseTimeout, *runner.ResponseTimeout)
+			}
+			if !maps.Equal(expRunner.RequestRequiredHeaders, runner.RequestRequiredHeaders) {
+				t.Errorf("request headers want %+v got %+v", expRunner.RequestRequiredHeaders, runner.RequestRequiredHeaders)
 			}
 		})
 	}

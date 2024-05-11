@@ -42,41 +42,17 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	if conf.ShutdownSignalHeader != nil {
 		shutdownSignalHeaderValue = *conf.ShutdownSignalHeader
 	}
-	listenAddress := conf.ListenAddress
-	timeout := *conf.Timeout
-	responseOK := *conf.ResponseOK
-	responseFailed := *conf.ResponseFailed
-	responseTimeout := *conf.ResponseTimeout
-	requestReadTimeout := *conf.RequestReadTimeout
-	responseWriteTimeout := *conf.ResponseWriteTimeout
-
-	runner := Runner{Log: logger, Timeout: timeout}
 
 	var reqHandlerChan = make(chan *http.Request, 1)
 
-	httpHandler := func(w http.ResponseWriter, r *http.Request) {
-		logger.Printf("processing http request: %s", httpRequestAsString(r))
-		_, failed, timedout := runChecks(&runner, checkGroups, logger)
-		if timedout > 0 {
-			w.WriteHeader(http.StatusGatewayTimeout) // 504
-			fmt.Fprint(w, responseTimeout)
-		} else if failed > 0 {
-			w.WriteHeader(http.StatusInternalServerError) // 500
-			fmt.Fprint(w, responseFailed)
-		} else {
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprint(w, responseOK)
-		}
-		reqHandlerChan <- r
-	}
-
+	httpHandler := makeHTTPRequestHandler(reqHandlerChan, conf, checkGroups, logger)
 	http.HandleFunc("/", httpHandler)
 
 	server := &http.Server{
-		Addr:           listenAddress,
+		Addr:           conf.ListenAddress,
 		Handler:        nil, // use http.DefaultServeMux
-		ReadTimeout:    requestReadTimeout,
-		WriteTimeout:   responseWriteTimeout,
+		ReadTimeout:    *conf.RequestReadTimeout,
+		WriteTimeout:   *conf.ResponseWriteTimeout,
 		IdleTimeout:    0 * time.Second, // set to 0 so uses read timeout
 		MaxHeaderBytes: *conf.MaxHeaderBytes,
 	}
@@ -101,7 +77,7 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 		}
 	}()
 
-	logger.Printf("starting http server listening on %s", listenAddress)
+	logger.Printf("starting http server listening on %s", conf.ListenAddress)
 	err := server.ListenAndServe()
 	close(reqHandlerChan)
 	if err != nil && err != http.ErrServerClosed {
@@ -110,6 +86,63 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 	}
 	logger.Printf("http server shutdown!")
 	return ExOK
+}
+
+// makeHTTPRequestHandler creates a http request handler function used by RunModeHTTP
+func makeHTTPRequestHandler(reqHandlerChan chan *http.Request,
+	conf *ConfRunner, checkGroups *CheckSuites, logger *log.Logger) func(http.ResponseWriter, *http.Request) {
+	maxConcurrentRequests := int32(*conf.MaxConcurrentRequests)
+	responseOK, responseFailed := *conf.ResponseOK, *conf.ResponseFailed
+	responseTimeout := *conf.ResponseTimeout
+	responseUnavailable, responseInvalidRequest := *conf.ResponseUnavailable, *conf.ResponseInvalidRequest
+	requieredHeaders := conf.RequestRequiredHeaders
+	shouldCheckHeaders := len(requieredHeaders) > 0
+
+	runner := Runner{Log: logger, Timeout: *conf.Timeout}
+
+	var runningRequests atomic.Int32
+	httpRequestHandler := func(w http.ResponseWriter, r *http.Request) {
+		runningRequests.Add(1)
+		if maxConcurrentRequests > 0 && runningRequests.Load() > maxConcurrentRequests {
+			logger.Printf("runner reached max conccurent requests. rejecting request: %s", httpRequestAsString(r))
+			w.WriteHeader(http.StatusServiceUnavailable) // 503
+			fmt.Fprint(w, responseUnavailable)
+			return
+		}
+		defer runningRequests.Add(-1)
+		if shouldCheckHeaders {
+			for header, value := range requieredHeaders {
+				reqHeader, ok := r.Header[header]
+				if !ok {
+					logger.Printf("http request missing required header %s: %s", header, httpRequestAsString(r))
+					w.WriteHeader(http.StatusBadRequest) // 400
+					fmt.Print(w, responseInvalidRequest)
+					return
+				}
+				if value != "" && reqHeader[0] != value {
+					logger.Printf("http request doesn't match required header %s: %s", header, httpRequestAsString(r))
+					w.WriteHeader(http.StatusBadRequest) // 400
+					fmt.Print(w, responseInvalidRequest)
+					return
+				}
+			}
+		}
+
+		logger.Printf("processing http request: %s", httpRequestAsString(r))
+		_, failed, timedout := runChecks(&runner, checkGroups, logger)
+		if timedout > 0 {
+			w.WriteHeader(http.StatusGatewayTimeout) // 504
+			fmt.Fprint(w, responseTimeout)
+		} else if failed > 0 {
+			w.WriteHeader(http.StatusInternalServerError) // 500
+			fmt.Fprint(w, responseFailed)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, responseOK)
+		}
+		reqHandlerChan <- r
+	}
+	return httpRequestHandler
 }
 
 // runChecks runs checks with logs, and returns number of passed, failed and timedout checks
