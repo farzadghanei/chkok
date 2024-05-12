@@ -1,7 +1,7 @@
 Name: chkok
 Version: 0.3.0
 Release: 1%{?dist}
-Summary: Checks if system resources are OK
+Summary: checks files and sockets attributes
 
 License: MIT
 URL: https://github.com/farzadghanei/chkok
@@ -11,8 +11,9 @@ Source0: %{name}-%{version}.tar.gz
 # BuildRequires: golang > 1.22, golang-gopkg-yaml-3-devel > 3.0.0
 
 %description
-"chkok" checks if system resources are OK, and provides a report to demonstrate
-system health and resource availability.
+"chkok" checks if attributes of files and sockets match the provided conditions to ensure
+system state is as expected. It can be used to monitor system health and resource availability.
+Provides different running modes, useful for reporting to local and remote monitoring.
 
 # go toolchain stores go build id in a different ELF note than GNU toolchain
 # so RPM can't find the build id from the binaries after build.

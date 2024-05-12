@@ -13,15 +13,19 @@ Usage
 
 Run in CLI mode (default):
 
-```
-chkok -conf examples/config.yaml
-```
+
+.. code-block:: shell
+
+    chkok -conf examples/config.yaml
+
 
 Run in HTTP mode, starting an HTTP server on the configured port:
 
-```
-chkok -conf examples/config.yaml -verbose -mode http
-```
+
+.. code-block:: shell
+
+    chkok -conf examples/config.yaml -verbose -mode http
+
 
 Configuration
 -------------
@@ -29,7 +33,7 @@ Configuration
 Configuration is done via a YAML file.
 
 `runners` section configures how the checks should be run. The runner configurations
-are merged with the `default`` runner configuration.
+are merged with the `default` runner configuration.
 
 .. code-block:: yaml
 
