@@ -29,7 +29,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .TH "CHKOK" 1 "2024-05-11" "0.3.0" "General Command Manuals"
 .SH NAME
-chkok \- Checks if system resources are OK
+chkok \- Check if file attributes are OK
 .SH SYNOPSIS
 .INDENT 0.0
 .INDENT 3.5
@@ -38,8 +38,9 @@ chkok [OPTIONS]
 .UNINDENT
 .SH DESCRIPTION
 .sp
-chkok checks if system resources are OK, and provides a report to demonstrate system
-health and resource availablity.
+chkok checks if attributes of files and sockets match the provided conditions to ensure
+system state is as expected. It can be used to monitor system health and resource availability.
+Provides different running modes, useful for reporting to local and remote monitoring.
 .SH OPTIONS
 .INDENT 0.0
 .INDENT 3.5
@@ -52,6 +53,74 @@ health and resource availablity.
       running mode: cli,http (default \(dqcli\(dq)
 \-verbose
       more output, include logs
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH CONFIGURATION
+.sp
+Configuration is done via a YAML file.
+.sp
+\fIrunners\fP section configures how the checks should be run. The runner configurations
+are merged with the \fIdefault\fP runner configuration.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+runners:
+    default:
+        timeout: 5m
+        # response_ok: \(dqOK\(dq
+        # response_fail: \(dqFAILED\(dq
+        # response_timeout: \(dqTIMEOUT\(dq
+    cli: {}  # override default runner only for CLI mode
+    http:  # override default runner only for HTTP mode
+        listen_address: \(dq127.0.0.1:51234\(dq
+        # request_read_timeout: 2s
+        # response_write_timeout: 2s
+        # timeout: 5s
+        # max_header_bytes: 8192
+        # max_concurrent_requests: 1  # 0 means no limit
+        # request_required_headers:
+        #   \(dqX\-Required\-Header\(dq: \(dqrequired\-value\(dq
+        #   \(dqX\-Required\-Header2\(dq: \(dq\(dq  # header existence is required, not value
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The \fIcheck_suites\fP section defines the checks to be run. Each check suite
+is a logical group of checks that should run sequentially.
+Each check defines the expected properties of the resource (file or socket)
+to be checked.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+check_suites:
+  etc:
+    \- type: dir
+      path: /etc
+      mode: 0755
+      user: root
+      group: root
+    \- type: file
+      path: /etc/passwd
+      min_size: 10
+    \- type: file
+      path: /etc/group
+      min_size: 5
+      max_size: 10000
+  default:
+    \- type: file
+      path: /unwanted/file
+      absent: true
+    \- type: dial
+      network: tcp
+      address: \(dqlocalhost:22\(dq
+      timeout: 500ms
 .ft P
 .fi
 .UNINDENT

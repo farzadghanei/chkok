@@ -22,7 +22,7 @@ runners:
     # max_concurrent_requests: 1  # 0 means no limit
     # request_required_headers:
     #   "X-Required-Header": "required-value"
-    #   "X-Required-Header2": ""  # header existance is required, not value
+    #   "X-Required-Header2": ""  # header existence is required, not value
 
 
 check_suites:
@@ -45,12 +45,12 @@ check_suites:
       absent: true
     - type: dial
       network: tcp
-      address: "localhost:8080"
+      address: "localhost:123"
       absent: true
       timeout: 500ms
-      # - type: dial
-      #   network: tcp
-      #   address: "localhost:80"
-      #   timeout: 500ms
+    - type: dial
+      network: tcp
+      address: "localhost:22"
+      timeout: 500ms
 
 ...

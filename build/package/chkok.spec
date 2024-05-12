@@ -12,7 +12,7 @@ Source0: %{name}-%{version}.tar.gz
 
 %description
 "chkok" checks if system resources are OK, and provides a report to demonstrate
-system health and resource availablity.
+system health and resource availability.
 
 # go toolchain stores go build id in a different ELF note than GNU toolchain
 # so RPM can't find the build id from the binaries after build.

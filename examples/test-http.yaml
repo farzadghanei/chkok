@@ -18,7 +18,7 @@ runners:
     shutdown_signal_header: "test-shutdown-signal"
     timeout: 5s
     request_required_headers:
-      "X-Required-Header2": ""  # header existance is required
+      "X-Required-Header2": ""  # header existence is required
 
 
 check_suites:

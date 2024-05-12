@@ -126,7 +126,8 @@ distclean: clean
 # 							--hookdir=$(PBUILDER_HOOKS_DIR)
 
 pkg-tgz: build
-	tar --create --gzip --exclude-vcs --exclude=docs/man/*.rst --file $(PKG_TGZ_PATH) chkok README.rst LICENSE docs/man/chkok.1
+	tar --create --gzip --exclude-vcs --exclude=docs/man/*.rst --file $(PKG_TGZ_PATH) chkok \
+		README.rst LICENSE docs/man/chkok.1 examples/config.yaml
 
 # override prefix so .rpm package installs binaries to /usr/bin instead of /usr/local/bin
 pkg-rpm: export prefix = /usr
