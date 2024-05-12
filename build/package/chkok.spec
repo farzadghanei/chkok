@@ -1,7 +1,7 @@
 Name: chkok
 Version: 0.3.0
 Release: 1%{?dist}
-Summary: checks files and sockets attributes
+Summary: checks attributes of files and sockets
 
 License: MIT
 URL: https://github.com/farzadghanei/chkok
@@ -33,6 +33,7 @@ rm -rf $RPM_BUILD_ROOT
 %make_install
 mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1
 cp -a docs/man/chkok.1 $RPM_BUILD_ROOT/usr/share/man/man1/%{name}.1
+cp -a examples/config.yaml example-config.yaml
 
 
 %clean
@@ -41,7 +42,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %license LICENSE
-%doc README.rst
+%doc README.rst example-config.yaml
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}*
 

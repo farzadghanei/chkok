@@ -1,5 +1,7 @@
 ---
+# configurations for chkok
 
+# define how the checks should run
 runners:
   default:
     timeout: 5m
@@ -24,7 +26,8 @@ runners:
     #   "X-Required-Header": "required-value"
     #   "X-Required-Header2": ""  # header existence is required, not value
 
-
+# define the checks to be run. Each check suite
+# is a logical group of checks that should run sequentially.
 check_suites:
   etc:
     - type: dir
