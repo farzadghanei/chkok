@@ -52,18 +52,18 @@ PKG_DIST_DIR ?= $(abspath $(makefile_dir)/..)
 PKG_TGZ_NAME = chkok-$(CHKOK_VERSION)-$(OS)-$(ARCH).tar.gz
 PKG_TGZ_PATH = $(PKG_DIST_DIR)/$(PKG_TGZ_NAME)
 PKG_CHECKSUM_NAME = chkok-$(CHKOK_VERSION)-SHA256SUMS
-PBUILDER_COMPONENTS ?= "main universe"
-PBUILDER_RC ?= $(makefile_dir)build/package/pbuilderrc
-PBUILDER_HOOKS_DIR ?= $(makefile_dir)build/package/pbuilder-hooks
+# PBUILDER_COMPONENTS ?= "main universe"
+# PBUILDER_RC ?= $(makefile_dir)build/package/pbuilderrc
+# PBUILDER_HOOKS_DIR ?= $(makefile_dir)build/package/pbuilder-hooks
 RPM_DEV_TREE ?= $(HOME)/rpmbuild
 
 # find Debian package version from the changelog file. latest version
 # should be at the top, first matching 'chkok (0.1.0-1) ...' and sed clears chars not in version
-CHKOK_DEB_VERSION := $(shell grep --only-matching --max-count 1 --perl-regexp "^\s*chkok\s+\(.+\)\s*" build/package/debian/changelog | sed 's/[^0-9.-]//g')
-CHKOK_DEB_UPSTREAM_VERSION := $(shell echo $(CHKOK_DEB_VERSION) | grep --only-matching --perl-regexp '^[0-9.]+')
-CHKOK_DEB_UPSTREAM_TARBAL_PATH := $(abspath $(makefile_dir)/..)
-CHKOK_DEB_UPSTREAM_TARBAL := $(CHKOK_DEB_UPSTREAM_TARBAL_PATH)/chkok_$(CHKOK_DEB_UPSTREAM_VERSION).orig.tar.gz
-DEB_BUILD_GIT_BRANCH := pkg-deb-$(CHKOK_DEB_VERSION)-$(TIMESTAMP_MINUTE)
+# CHKOK_DEB_VERSION := $(shell grep --only-matching --max-count 1 --perl-regexp "^\s*chkok\s+\(.+\)\s*" build/package/debian/changelog | sed 's/[^0-9.-]//g')
+# CHKOK_DEB_UPSTREAM_VERSION := $(shell echo $(CHKOK_DEB_VERSION) | grep --only-matching --perl-regexp '^[0-9.]+')
+# CHKOK_DEB_UPSTREAM_TARBAL_PATH := $(abspath $(makefile_dir)/..)
+# CHKOK_DEB_UPSTREAM_TARBAL := $(CHKOK_DEB_UPSTREAM_TARBAL_PATH)/chkok_$(CHKOK_DEB_UPSTREAM_VERSION).orig.tar.gz
+# DEB_BUILD_GIT_BRANCH := pkg-deb-$(CHKOK_DEB_VERSION)-$(TIMESTAMP_MINUTE)
 
 # find rpm version from the spec file. latest version
 # should be in the top tags, first matching 'Version: 0.1.0' and sed clears chars not in version
@@ -72,7 +72,7 @@ RPM_DEV_SRC_TGZ = $(RPM_DEV_TREE)/SOURCES/chkok-$(CHKOK_RPM_VERSION).tar.gz
 RPM_DEV_SPEC = $(RPM_DEV_TREE)/SPECS/chkok-$(CHKOK_RPM_VERSION).spec
 
 # command aliases
-cowbuilder = env DISTRIBUTION=$(DIST) ARCH=$(ARCH) BASEPATH=/var/cache/pbuilder/base-$(DIST)-$(ARCH).cow cowbuilder
+# cowbuilder = env DISTRIBUTION=$(DIST) ARCH=$(ARCH) BASEPATH=/var/cache/pbuilder/base-$(DIST)-$(ARCH).cow cowbuilder
 
 
 chkok:
@@ -101,38 +101,38 @@ clean:
 distclean: clean
 
 # override prefix so .deb package installs binaries to /usr/bin instead of /usr/local/bin
-pkg-deb: export prefix = /usr
+# pkg-deb: export prefix = /usr
 # requires a cowbuilder environment. see pkg-deb-setup
-pkg-deb:
-	git checkout -b $(DEB_BUILD_GIT_BRANCH)
-	rm -f $(CHKOK_DEB_UPSTREAM_TARBAL); tar --exclude-backups --exclude-vcs -zcf $(CHKOK_DEB_UPSTREAM_TARBAL) .
-	cp -r build/package/debian debian; git add debian; git commit -m 'add debian dir for packaging v$(CHKOK_DEB_VERSION)'
-	gbp buildpackage --git-ignore-new --git-verbose --git-pbuilder \
-			 --git-no-create-orig --git-tarball-dir=$(CHKOK_DEB_UPSTREAM_TARBAL_PATH) \
-			 --git-hooks \
-			 --git-dist=$(DIST) --git-arch=$(ARCH) \
-			 --git-ignore-new --git-ignore-branch \
-			 --git-pbuilder-options='--configfile=$(PBUILDER_RC) --hookdir=$(PBUILDER_HOOKS_DIR) --buildresult=$(PKG_DIST_DIR)' \
-			 -b -us -uc -sa
-	git checkout $(GIT_CURRENT_BRANCH)
-	git branch -D $(DEB_BUILD_GIT_BRANCH)
+# pkg-deb:
+# 	git checkout -b $(DEB_BUILD_GIT_BRANCH)
+# 	rm -f $(CHKOK_DEB_UPSTREAM_TARBAL); tar --exclude-backups --exclude-vcs -zcf $(CHKOK_DEB_UPSTREAM_TARBAL) .
+# 	cp -r build/package/debian debian; git add debian; git commit -m 'add debian dir for packaging v$(CHKOK_DEB_VERSION)'
+# 	gbp buildpackage --git-ignore-new --git-verbose --git-pbuilder \
+# 			 --git-no-create-orig --git-tarball-dir=$(CHKOK_DEB_UPSTREAM_TARBAL_PATH) \
+# 			 --git-hooks \
+# 			 --git-dist=$(DIST) --git-arch=$(ARCH) \
+# 			 --git-ignore-new --git-ignore-branch \
+# 			 --git-pbuilder-options='--configfile=$(PBUILDER_RC) --hookdir=$(PBUILDER_HOOKS_DIR) --buildresult=$(PKG_DIST_DIR)' \
+# 			 -b -us -uc -sa
+# 	git checkout $(GIT_CURRENT_BRANCH)
+# 	git branch -D $(DEB_BUILD_GIT_BRANCH)
 
 # required:
 # sudo apt-get install build-essential debhelper pbuilder fakeroot cowbuilder git-buildpackage devscripts ubuntu-dev-tools
-pkg-deb-setup:
-	echo "creating a git-pbuilder environment with apt repositories to install new go versions ..."
-	DIST=$(DIST) ARCH=$(ARCH) git-pbuilder create --components=$(PBUILDER_COMPONENTS) \
-							--extrapackages="cowdancer curl wget" --configfile=$(PBUILDER_RC) \
-							--hookdir=$(PBUILDER_HOOKS_DIR)
+# pkg-deb-setup:
+# 	echo "creating a git-pbuilder environment with apt repositories to install new go versions ..."
+# 	DIST=$(DIST) ARCH=$(ARCH) git-pbuilder create --components=$(PBUILDER_COMPONENTS) \
+# 							--extrapackages="cowdancer curl wget" --configfile=$(PBUILDER_RC) \
+# 							--hookdir=$(PBUILDER_HOOKS_DIR)
 
 pkg-tgz: build
-	tar --create --gzip --exclude-vcs --exclude=docs/man/*.rst --file $(PKG_TGZ_PATH) chkok README.rst LICENSE
+	tar --create --gzip --exclude-vcs --exclude=docs/man/*.rst --file $(PKG_TGZ_PATH) chkok \
+		README.rst LICENSE docs/man/chkok.1 examples/config.yaml
 
 # override prefix so .rpm package installs binaries to /usr/bin instead of /usr/local/bin
 pkg-rpm: export prefix = /usr
-# requires golang compiler > 1.13, and rpmdevtools package
+# requires golang compiler > 1.22, and rpmdevtools package
 pkg-rpm:
-	(go version | grep -q 'go1.[01]') && (echo "please install Go lang tools > 1.20. aborting!" && /bin/false)
 	rm -f $(RPM_DEV_SRC_TGZ)
 	tar --exclude-vcs -zcf $(RPM_DEV_SRC_TGZ) .
 	cp build/package/chkok.spec $(RPM_DEV_SPEC)
@@ -161,16 +161,16 @@ pkg-checksum:
 sync-version:
 	@ # update first occurrence of version in man page source and regen the man page
 	@ sed -i 's/^:Version:.*/:Version: $(CHKOK_VERSION)/;t' docs/man/chkok.rst && $(MAKE) docs
-	@ # update first occurrence of version  in RPM spec
+	@ # update first occurrence of version in RPM spec
 	@ sed -i 's/^Version:.*/Version: $(CHKOK_VERSION)/;t' build/package/chkok.spec
-	@ (grep --max 1 --only --perl-regexp '^chkok.+\(.+\).+' build/package/debian/changelog | grep -q -F $(CHKOK_VERSION)) || \
+	@ # (grep --max 1 --only --perl-regexp '^chkok.+\(.+\).+' build/package/debian/changelog | grep -q -F $(CHKOK_VERSION)) || \
 	    echo -e "\e[33m*** NOTE:\e[m version $(CHKOK_VERSION) maybe missing from Debian changelog"
 	@ (grep --line-regexp '%changelog' -A 50 build/package/chkok.spec | grep -q -F $(CHKOK_VERSION)) || \
 	    echo -e "\e[33m*** NOTE:\e[m version $(CHKOK_VERSION) maybe missing from RPM changelog"
 
-# required: python docutils
+# required: python docutils. install python3-docutils
 docs:
-	rst2man.py --input-encoding=utf8 --output-encoding=utf8 --strict docs/man/chkok.rst docs/man/chkok.1
+	rst2man --input-encoding=utf8 --output-encoding=utf8 --strict docs/man/chkok.rst docs/man/chkok.1
 
 .DEFAULT_GOAL := build
 .PHONY: test build test-build install pkg-deb pkg-clean pkg-deb-setup pkg-tgz pkg-checksum sync-version docs

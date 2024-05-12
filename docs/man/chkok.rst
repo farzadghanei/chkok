@@ -1,35 +1,50 @@
-*****
-Chkok
-*****
+=====
+chkok
+=====
 
-"chkok" checks if attributes of files and sockets match the provided conditions to ensure
+-------------------------------
+Check if file attributes are OK
+-------------------------------
+
+:Author: Farzad Ghanei
+:Date:   2024-05-11
+:Copyright:  Copyright (c) 2024 Farzad Ghanei. chkok is an open source project released under the terms of the MIT license.
+:Version: 0.3.0
+:Manual section: 1
+:Manual group: General Command Manuals
+
+
+SYNOPSIS
+========
+    chkok [OPTIONS]
+
+
+DESCRIPTION
+===========
+chkok checks if attributes of files and sockets match the provided conditions to ensure
 system state is as expected. It can be used to monitor system health and resource availability.
 Provides different running modes, useful for reporting to local and remote monitoring.
-It's written in Go, has a small resource overhead with no runtime dependencies.
+
+OPTIONS
+=======
+
+.. code-block::
+
+  -conf string
+        path to configuration file in YAML format (default "/etc/chkok.yaml")
+  -mode string
+        running mode: cli,http (default "cli")
+  -verbose
+        more output, include logs
 
 
-Usage
------
-
-Run in CLI mode (default):
-
-```
-chkok -conf examples/config.yaml
-```
-
-Run in HTTP mode, starting an HTTP server on the configured port:
-
-```
-chkok -conf examples/config.yaml -verbose -mode http
-```
-
-Configuration
--------------
+CONFIGURATION
+=============
 
 Configuration is done via a YAML file.
 
 `runners` section configures how the checks should be run. The runner configurations
-are merged with the `default`` runner configuration.
+are merged with the `default` runner configuration.
 
 .. code-block:: yaml
 
@@ -83,12 +98,13 @@ to be checked.
           timeout: 500ms
 
 
-See the `examples` directory for sample configuration files.
+FILES
+=====
+
+**\/etc\/chkok.yaml**
+    The default configuration file, if available should contain valid configuration in YAML format.
 
 
-License
--------
-
-"chkok" is an open source project released under the terms of the `MIT license <https://opensource.org/licenses/MIT>`_.
-It uses yaml.v3 library which is licensed under the MIT and Apache License 2.0 licenses.
-See LICENSE file for more details.
+REPORTING BUGS
+==============
+Bugs can be reported with https://github.com/farzadghanei/chkok/issues

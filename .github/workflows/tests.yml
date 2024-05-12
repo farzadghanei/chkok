@@ -2,8 +2,8 @@
 
 name: tests
 
-on:
-  push:
+on:   # yamllint disable-line rule:truthy
+  push: {}
   pull_request:
     branches: [main]
 
