@@ -31,8 +31,6 @@ Provides different running modes, useful for reporting to local and remote monit
 %install
 rm -rf $RPM_BUILD_ROOT
 %make_install
-mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1
-cp -a docs/man/chkok.1 $RPM_BUILD_ROOT/usr/share/man/man1/%{name}.1
 cp -a examples/config.yaml example-config.yaml
 
 

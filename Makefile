@@ -36,6 +36,8 @@ DESTDIR ?=
 prefix ?= /usr/local
 exec_prefix ?= $(prefix)
 bindir ?= $(exec_prefix)/bin
+sharedir ?= $(exec_prefix)/share
+mandir ?= $(sharedir)/man/man1
 
 # use Make's builtin variable to call 'install'
 INSTALL ?= install
@@ -89,9 +91,12 @@ test:
 install: build
 	$(INSTALL_PROGRAM) -d $(DESTDIR)$(bindir)
 	$(INSTALL_PROGRAM) chkok $(DESTDIR)$(bindir)
+	mkdir -p $(DESTDIR)$(mandir)
+	cp docs/man/chkok.1 $(DESTDIR)$(mandir)
 
 uninstall:
-	rm $(DESTDIR)$(bindir)/chkok
+	rm -f $(DESTDIR)$(bindir)/chkok
+	rm -f $(DESTDIR)$(mandir)/chkok.1
 
 clean:
 	rm -f chkok
@@ -131,8 +136,9 @@ pkg-tgz: build
 
 # override prefix so .rpm package installs binaries to /usr/bin instead of /usr/local/bin
 pkg-rpm: export prefix = /usr
-# requires golang compiler > 1.22, and rpmdevtools package
+# requires golang compiler > 1.22, and rpm-build/rpmdevtools package
 pkg-rpm:
+	mkdir -p $(RPM_DEV_TREE)/RPMS $(RPM_DEV_TREE)/SRPMS $(RPM_DEV_TREE)/SOURCES $(RPM_DEV_TREE)/SPECS
 	rm -f $(RPM_DEV_SRC_TGZ)
 	tar --exclude-vcs -zcf $(RPM_DEV_SRC_TGZ) .
 	cp build/package/chkok.spec $(RPM_DEV_SPEC)
