@@ -36,6 +36,8 @@ DESTDIR ?=
 prefix ?= /usr/local
 exec_prefix ?= $(prefix)
 bindir ?= $(exec_prefix)/bin
+sharedir ?= $(exec_prefix)/share
+mandir ?= $(sharedir)/man/man1
 
 # use Make's builtin variable to call 'install'
 INSTALL ?= install
@@ -84,14 +86,18 @@ build: chkok
 
 test:
 	go test -v -race ./...
+	./scripts/staticchecks
 
 
 install: build
 	$(INSTALL_PROGRAM) -d $(DESTDIR)$(bindir)
 	$(INSTALL_PROGRAM) chkok $(DESTDIR)$(bindir)
+	mkdir -p $(DESTDIR)$(mandir)
+	cp docs/man/chkok.1 $(DESTDIR)$(mandir)
 
 uninstall:
-	rm $(DESTDIR)$(bindir)/chkok
+	rm -f $(DESTDIR)$(bindir)/chkok
+	rm -f $(DESTDIR)$(mandir)/chkok.1
 
 clean:
 	rm -f chkok
@@ -131,8 +137,9 @@ pkg-tgz: build
 
 # override prefix so .rpm package installs binaries to /usr/bin instead of /usr/local/bin
 pkg-rpm: export prefix = /usr
-# requires golang compiler > 1.22, and rpmdevtools package
+# requires golang compiler > 1.22, and rpm-build/rpmdevtools package
 pkg-rpm:
+	mkdir -p $(RPM_DEV_TREE)/RPMS $(RPM_DEV_TREE)/SRPMS $(RPM_DEV_TREE)/SOURCES $(RPM_DEV_TREE)/SPECS
 	rm -f $(RPM_DEV_SRC_TGZ)
 	tar --exclude-vcs -zcf $(RPM_DEV_SRC_TGZ) .
 	cp build/package/chkok.spec $(RPM_DEV_SPEC)
@@ -151,11 +158,11 @@ pkg-checksum:
 	if test -e $(PKG_DIST_DIR); then cd $(PKG_DIST_DIR) \
 	    && (sed -i '/chkok_$(CHKOK_DEB_VERSION).*deb/d' $(PKG_CHECKSUM_NAME) || true) \
 	    && find . -maxdepth 1 -readable -type f -name 'chkok_$(CHKOK_DEB_VERSION)*.deb' \
-	    -exec sha256sum '{}' \; >> $(PKG_CHECKSUM_NAME); fi
+	    -exec sha256sum '{}' \; | sed 's|./||g' >> $(PKG_CHECKSUM_NAME); fi
 	if test -e $(PKG_DIST_DIR); then cd $(PKG_DIST_DIR) \
 	    && (sed -i '/chkok-$(CHKOK_RPM_VERSION).*rpm/d' $(PKG_CHECKSUM_NAME) || true) \
 	    && find . -maxdepth 1 -readable -type f -name 'chkok-$(CHKOK_RPM_VERSION)*.rpm' \
-	    -exec sha256sum '{}' \; >> $(PKG_CHECKSUM_NAME); fi
+	    -exec sha256sum '{}' \; | sed 's|./||g' >> $(PKG_CHECKSUM_NAME); fi
 
 # sync version from source code to other files (docs, packaging, etc.)
 sync-version:
