@@ -7,6 +7,28 @@ system state is as expected. It can be used to monitor system health and resourc
 Provides different running modes, useful for reporting to local and remote monitoring.
 It's written in Go, has a small resource overhead with no runtime dependencies.
 
+Main target platforms are modern GNU/Linux systems, but other operating systems may work as well.
+
+
+Installation
+------------
+
+Download the latest release from the `releases` page.
+Released artifacts can be verified with the checksum file containing sha256 hashes.
+
+.. code-block:: shell
+
+    sha256sum -c chkok-*SHA256SUMS
+
+
+Or build and install from source (requires Go 1.22+):
+
+.. code-block:: shell
+
+    sudo make install
+    # or to install in a custom location (e.g. for packaging)
+    env DESTDIR=/tmp make install
+
 
 Usage
 -----
@@ -25,6 +47,11 @@ Run in HTTP mode, starting an HTTP server on the configured port:
 .. code-block:: shell
 
     chkok -conf examples/config.yaml -verbose -mode http
+
+
+The HTTP mode is useful for checking the results remotely, for example, from a monitoring system.
+Currently there is no encryption supported, so it's recommended to use only in trusted networks,
+or behind a local SSL terminating service.
 
 
 Configuration
@@ -88,6 +115,26 @@ to be checked.
 
 
 See the `examples` directory for sample configuration files.
+
+
+Development
+-----------
+
+Make sure you have Go 1.22+ installed.
+Most of the development and build tasks are automated with the `Makefile`.
+
+To build the binary from source, run:
+
+.. code-block:: shell
+
+    make clean build
+
+
+To run the tests and static checks, run:
+
+.. code-block:: shell
+
+    make test
 
 
 License

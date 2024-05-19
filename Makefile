@@ -86,6 +86,7 @@ build: chkok
 
 test:
 	go test -v -race ./...
+	./scripts/staticchecks
 
 
 install: build
@@ -157,11 +158,11 @@ pkg-checksum:
 	if test -e $(PKG_DIST_DIR); then cd $(PKG_DIST_DIR) \
 	    && (sed -i '/chkok_$(CHKOK_DEB_VERSION).*deb/d' $(PKG_CHECKSUM_NAME) || true) \
 	    && find . -maxdepth 1 -readable -type f -name 'chkok_$(CHKOK_DEB_VERSION)*.deb' \
-	    -exec sha256sum '{}' \; >> $(PKG_CHECKSUM_NAME); fi
+	    -exec sha256sum '{}' \; | sed 's|./||g' >> $(PKG_CHECKSUM_NAME); fi
 	if test -e $(PKG_DIST_DIR); then cd $(PKG_DIST_DIR) \
 	    && (sed -i '/chkok-$(CHKOK_RPM_VERSION).*rpm/d' $(PKG_CHECKSUM_NAME) || true) \
 	    && find . -maxdepth 1 -readable -type f -name 'chkok-$(CHKOK_RPM_VERSION)*.rpm' \
-	    -exec sha256sum '{}' \; >> $(PKG_CHECKSUM_NAME); fi
+	    -exec sha256sum '{}' \; | sed 's|./||g' >> $(PKG_CHECKSUM_NAME); fi
 
 # sync version from source code to other files (docs, packaging, etc.)
 sync-version:
