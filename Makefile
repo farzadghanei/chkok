@@ -21,7 +21,7 @@ TIMESTAMP_MINUTE := $(shell date -u +%Y%m%d%H%M)
 # build
 OS ?= linux
 ARCH ?= amd64
-DIST ?= bookworm
+DIST ?= trixie  # go 1.22 is available in trixie
 GOLDFLAGS ?= "-s"  # by default create a leaner binary
 GOARCH ?= amd64
 
@@ -78,6 +78,8 @@ RPM_DEV_SPEC = $(RPM_DEV_TREE)/SPECS/chkok-$(CHKOK_RPM_VERSION).spec
 # command aliases
 cowbuilder = env DISTRIBUTION=$(DIST) ARCH=$(ARCH) BASEPATH=/var/cache/pbuilder/base-$(DIST)-$(ARCH).cow cowbuilder
 
+# testing
+TEST_SKIP_STATICCHECKS ?=
 
 chkok:
 	GOOS=$(OS) GOARCH=$(GOARCH) go build -ldflags $(GOLDFLAGS) cmd/chkok.go
@@ -88,7 +90,7 @@ build: chkok
 
 test:
 	go test -v -race ./...
-	./scripts/staticchecks
+	if test -z $(TEST_SKIP_STATICCHECKS); then ./scripts/staticchecks; fi
 
 
 install: build
@@ -109,17 +111,16 @@ clean:
 distclean: clean
 
 # override prefix so .deb package installs binaries to /usr/bin instead of /usr/local/bin
-# pkg-deb: export prefix = /usr
+# run target with 'make pkg-deb prefix=/usr'
 # requires a cowbuilder environment. see pkg-deb-setup
 pkg-deb:
 	git checkout -b $(DEB_BUILD_GIT_BRANCH)
 	rm -f $(CHKOK_DEB_UPSTREAM_TARBAL); tar --exclude-backups --exclude-vcs -zcf $(CHKOK_DEB_UPSTREAM_TARBAL) .
 	cp -r build/package/debian debian; git add debian; git commit -m 'add debian dir for packaging v$(CHKOK_DEB_VERSION)'
-	gbp buildpackage --git-ignore-new --git-verbose --git-pbuilder \
+	gbp buildpackage --git-ignore-new --git-ignore-branch --git-verbose --git-pbuilder \
 			 --git-no-create-orig --git-tarball-dir=$(CHKOK_DEB_UPSTREAM_TARBAL_PATH) \
 			 --git-hooks \
 			 --git-dist=$(DIST) --git-arch=$(ARCH) \
-			 --git-ignore-new --git-ignore-branch \
 			 --git-pbuilder-options='--configfile=$(PBUILDER_RC) --hookdir=$(PBUILDER_HOOKS_DIR) --buildresult=$(PKG_DIST_DIR)' \
 			 -b -us -uc -sa
 	git checkout $(GIT_CURRENT_BRANCH)

@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+
+override_dh_auto_test:
+	# skip staticchecks on package build
+	$(MAKE) test TEST_SKIP_STATICCHECKS=1
+
+override_dh_usrlocal:
+	@echo "skip dh_usrlocal"

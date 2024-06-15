@@ -1,0 +1,9 @@
+chkok (0.3.0-1) UNRELEASED; urgency=low
+
+  [ Farzad Ghanei ]
+  * Add support for required headers for http runner
+  * Add maxHeaderBytes configuration for http runner
+
+  [ Farzad Ghanei ]
+
+ -- Farzad Ghanei <644113+farzadghanei@users.noreply.github.com>  Sat, 15 Jun 2024 16:18:03 +0100

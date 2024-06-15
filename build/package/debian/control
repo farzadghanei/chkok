@@ -1,0 +1,12 @@
+Source: chkok
+Section: misc
+Priority: optional
+Maintainer: Farzad Ghanei <644113+farzadghanei@users.noreply.github.com>
+Homepage: https://github.com/farzadghanei/chkok
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13), golang-go (>=1.22), git, ca-certificates
+
+Package: chkok
+Architecture: amd64
+Description: checks attributes of files and sockets
+  "chkok" checks if attributes of files and sockets match the provided conditions.
