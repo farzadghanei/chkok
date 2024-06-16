@@ -8,5 +8,7 @@ Build-Depends: debhelper-compat (= 13), golang-go (>=1.22), git, ca-certificates
 
 Package: chkok
 Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: checks attributes of files and sockets
-  "chkok" checks if attributes of files and sockets match the provided conditions.
+ "chkok" checks if attributes of files and sockets match the provided
+ conditions.
