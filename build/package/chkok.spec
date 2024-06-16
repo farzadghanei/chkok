@@ -1,5 +1,5 @@
 Name: chkok
-Version: 0.3.0
+Version: 0.3.1
 Release: 1%{?dist}
 Summary: checks attributes of files and sockets
 
@@ -31,7 +31,6 @@ Provides different running modes, useful for reporting to local and remote monit
 %install
 rm -rf $RPM_BUILD_ROOT
 %make_install
-cp -a examples/config.yaml example-config.yaml
 
 
 %clean
@@ -40,12 +39,17 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %license LICENSE
-%doc README.rst example-config.yaml
+%doc README.rst
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}*
+%{_docdir}/chkok/example-config.yaml
 
 
 %changelog
+* Sun Jun 16 2024 Farzad Ghanei 0.3.1-1
+- Add support for Debian packaging
+- Improve packaging
+
 * Sat May 11 2024 Farzad Ghanei 0.3.0-1
 - Add support for required headers for http runner
 - Add maxHeaderBytes configuration for http runner

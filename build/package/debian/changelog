@@ -1,0 +1,10 @@
+chkok (0.3.1-1) UNRELEASED; urgency=low
+
+  [ Farzad Ghanei ]
+  * Closes #10 adds deb packaging
+  * Add support for required headers for http runner
+  * Add maxHeaderBytes configuration for http runner
+
+  [ Farzad Ghanei ]
+
+ -- Farzad Ghanei <644113+farzadghanei@users.noreply.github.com>  Sun, 16 Jun 2024 16:08:03 +0100

@@ -7,9 +7,9 @@ Check if file attributes are OK
 -------------------------------
 
 :Author: Farzad Ghanei
-:Date:   2024-05-11
+:Date:   2024-05-16
 :Copyright:  Copyright (c) 2024 Farzad Ghanei. chkok is an open source project released under the terms of the MIT license.
-:Version: 0.3.0
+:Version: 0.3.1
 :Manual section: 1
 :Manual group: General Command Manuals
 
