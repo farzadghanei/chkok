@@ -36,8 +36,9 @@ DESTDIR ?=
 prefix ?= /usr/local
 exec_prefix ?= $(prefix)
 bindir ?= $(exec_prefix)/bin
-sharedir ?= $(exec_prefix)/share
+sharedir ?= $(prefix)/share
 mandir ?= $(sharedir)/man/man1
+docsdir ?= $(sharedir)/doc/chkok
 
 # use Make's builtin variable to call 'install'
 INSTALL ?= install
@@ -98,10 +99,14 @@ install: build
 	$(INSTALL_PROGRAM) chkok $(DESTDIR)$(bindir)
 	mkdir -p $(DESTDIR)$(mandir)
 	cp docs/man/chkok.1 $(DESTDIR)$(mandir)
+	mkdir -p $(DESTDIR)$(docsdir)
+	cp examples/config.yaml $(DESTDIR)$(docsdir)/example-config.yaml
 
 uninstall:
 	rm -f $(DESTDIR)$(bindir)/chkok
 	rm -f $(DESTDIR)$(mandir)/chkok.1
+	rm -f $(DESTDIR)$(docsdir)/*yaml
+	rmdir $(DESTDIR)$(docsdir)
 
 clean:
 	rm -f chkok
