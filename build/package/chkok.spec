@@ -31,7 +31,6 @@ Provides different running modes, useful for reporting to local and remote monit
 %install
 rm -rf $RPM_BUILD_ROOT
 %make_install
-cp -a examples/config.yaml example-config.yaml
 
 
 %clean
@@ -40,9 +39,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %license LICENSE
-%doc README.rst example-config.yaml
+%doc README.rst
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}*
+%{_docdir}/chkok/example-config.yaml
 
 
 %changelog

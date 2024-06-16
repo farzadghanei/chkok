@@ -101,11 +101,12 @@ install: build
 	cp docs/man/chkok.1 $(DESTDIR)$(mandir)
 	mkdir -p $(DESTDIR)$(docsdir)
 	cp examples/config.yaml $(DESTDIR)$(docsdir)/example-config.yaml
+	cp README.rst $(DESTDIR)$(docsdir)/README.rst
 
 uninstall:
 	rm -f $(DESTDIR)$(bindir)/chkok
 	rm -f $(DESTDIR)$(mandir)/chkok.1
-	rm -f $(DESTDIR)$(docsdir)/*yaml
+	rm -f $(DESTDIR)$(docsdir)/*
 	rmdir $(DESTDIR)$(docsdir)
 
 clean:
