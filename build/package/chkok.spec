@@ -1,5 +1,5 @@
 Name: chkok
-Version: 0.3.0
+Version: 0.3.1
 Release: 1%{?dist}
 Summary: checks attributes of files and sockets
 
@@ -46,6 +46,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sun Jun 16 2024 Farzad Ghanei 0.3.1-1
+- Add support for Debian packaging
+- Improve packaging
+
 * Sat May 11 2024 Farzad Ghanei 0.3.0-1
 - Add support for required headers for http runner
 - Add maxHeaderBytes configuration for http runner

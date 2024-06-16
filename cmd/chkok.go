@@ -11,7 +11,7 @@ import (
 )
 
 // Version of the app
-const Version string = "0.3.0"
+const Version string = "0.3.1"
 
 // ModeHTTP run checks in http server mode
 const ModeHTTP string = "http"
