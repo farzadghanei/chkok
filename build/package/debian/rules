@@ -4,6 +4,10 @@
 	dh $@
 
 
+override_dh_install:
+	dh_install
+
+
 override_dh_auto_test:
 	# skip staticchecks on package build
 	$(MAKE) test TEST_SKIP_STATICCHECKS=1

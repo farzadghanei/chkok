@@ -173,7 +173,7 @@ sync-version:
 	@ sed -i 's/^:Version:.*/:Version: $(CHKOK_VERSION)/;t' docs/man/chkok.rst && $(MAKE) docs
 	@ # update first occurrence of version in RPM spec
 	@ sed -i 's/^Version:.*/Version: $(CHKOK_VERSION)/;t' build/package/chkok.spec
-	@ # (grep --max 1 --only --perl-regexp '^chkok.+\(.+\).+' build/package/debian/changelog | grep -q -F $(CHKOK_VERSION)) || \
+	@ (grep --max 1 --only --perl-regexp '^chkok.+\(.+\).+' build/package/debian/changelog | grep -q -F $(CHKOK_VERSION)) || \
 	    echo -e "\e[33m*** NOTE:\e[m version $(CHKOK_VERSION) maybe missing from Debian changelog"
 	@ (grep --line-regexp '%changelog' -A 50 build/package/chkok.spec | grep -q -F $(CHKOK_VERSION)) || \
 	    echo -e "\e[33m*** NOTE:\e[m version $(CHKOK_VERSION) maybe missing from RPM changelog"
