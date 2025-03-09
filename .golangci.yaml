@@ -3,10 +3,7 @@
 
 run:
   timeout: 5m
-  go: '1.22'
-  issues:
-    exclude-dirs:
-      - .vscode
+  go: '1.24'
 
 
 linters:
@@ -17,14 +14,14 @@ linters:
     - dogsled
     - dupl
     - errcheck
-    - exportloopref
+    - copyloopvar
     - funlen
     - gochecknoinits
     - gocritic
     - gocyclo
     - gofmt
     - goimports
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -74,7 +71,7 @@ linters-settings:
       - wrapperFunc
   gocyclo:
     min-complexity: 15
-  gomnd:
+  mnd:
     # don't include the "operation" and "assign"
     checks:
       - argument
@@ -107,3 +104,4 @@ linters-settings:
         allow:
           - $gostd
           - github.com/farzadghanei/chkok
+          - gopkg.in/yaml.v3

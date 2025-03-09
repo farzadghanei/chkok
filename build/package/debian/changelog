@@ -1,3 +1,14 @@
+chkok (0.4.0-1) UNRELEASED; urgency=low
+
+  [ Farzad Ghanei ]
+    * Add new check to count files in a directory
+    * Use go 1.24 for building
+    * Update yaml dependency from v3.0.0 to v3.0.1
+
+  [ Farzad Ghanei ]
+
+ -- Farzad Ghanei <644113+farzadghanei@users.noreply.github.com>  Sun, 9 Mar 2025 14:08:03 +0100
+
 chkok (0.3.1-1) UNRELEASED; urgency=low
 
   [ Farzad Ghanei ]

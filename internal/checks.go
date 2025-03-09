@@ -82,21 +82,33 @@ func (bc *baseCheck) Status() Status {
 	return bc.status
 }
 
-// CheckFile checks for file/dir existence/type/uid/gid/size
+// CheckFile checks for file/dir existence/type/uid/gid/size/file count
 type CheckFile struct {
 	baseCheck
-	path     string
-	fileType FileType
-	uid      int32 // -1 to skip
-	gid      int32 // -1 to skip
-	absent   bool
-	minSize  int32 // -1 to sktip
-	maxSize  int64 // 0 to skip
+	path         string
+	fileType     FileType
+	uid          int32 // -1 to skip
+	gid          int32 // -1 to skip
+	absent       bool
+	minSize      int32 // -1 to skip
+	maxSize      int64 // -1 to skip
+	minFileCount int   // -1 to skip
+	maxFileCount int   // -1 to skip
 }
 
-// NewCheckFile returns a new checkFile without a uid/gid/size checks
+// NewCheckFile returns a new checkFile without a uid/gid/size/file count checks
 func NewCheckFile(path string) *CheckFile {
-	return &CheckFile{path: path, fileType: TypeAny, uid: -1, gid: -1, absent: false, minSize: -1, maxSize: -1}
+	return &CheckFile{
+		path:         path,
+		fileType:     TypeAny,
+		uid:          -1,
+		gid:          -1,
+		absent:       false,
+		minSize:      -1,
+		maxSize:      -1,
+		minFileCount: -1,
+		maxFileCount: -1,
+	}
 }
 
 func (chk *CheckFile) typeString() string {
@@ -141,6 +153,9 @@ func (chk *CheckFile) Run() Result {
 		if !finfo.IsDir() {
 			chk.result.IsOK = false
 			chk.result.Issues = append(chk.result.Issues, errors.New("is not a directory"))
+		} else if chk.minFileCount > -1 || chk.maxFileCount > -1 {
+			// Only check file counts if it's a directory and we have count constraints
+			chk.checkFileCount(&chk.result)
 		}
 	case TypeFile:
 		if !finfo.Mode().IsRegular() {
@@ -161,7 +176,7 @@ func (chk *CheckFile) checkUIDGID(fstat *syscall.Stat_t, result *Result) {
 		if fstat == nil {
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("check for file owner is not supported on this system"))
-		} else if uint32(chk.uid) != fstat.Uid {
+		} else if uint32(chk.uid) != fstat.Uid { //nolint: gosec
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("owner mismatch. want %v got %v", chk.uid, fstat.Uid))
 		}
@@ -171,7 +186,7 @@ func (chk *CheckFile) checkUIDGID(fstat *syscall.Stat_t, result *Result) {
 		if fstat == nil {
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("check for file group is not supported on this system"))
-		} else if uint32(chk.gid) != fstat.Gid {
+		} else if uint32(chk.gid) != fstat.Gid { //nolint: gosec
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("group mismatch. want %v got %v", chk.gid, fstat.Gid))
 		}
@@ -189,6 +204,37 @@ func (chk *CheckFile) checkSize(size int64, result *Result) {
 		result.IsOK = false
 		result.Issues = append(result.Issues, fmt.Errorf(
 			"file too large, size %v is more than max size %v", size, chk.maxSize))
+	}
+}
+
+// countFilesInDir counts the number of files in a directory
+func countFilesInDir(dirPath string) (int, error) {
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return 0, err
+	}
+	return len(entries), nil
+}
+
+// checkFileCount checks for directory min/max file count and updates the provided result
+func (chk *CheckFile) checkFileCount(result *Result) {
+	count, err := countFilesInDir(chk.path)
+	if err != nil {
+		result.IsOK = false
+		result.Issues = append(result.Issues, fmt.Errorf("failed to count files: %v", err))
+		return
+	}
+
+	if chk.minFileCount > -1 && count < chk.minFileCount {
+		result.IsOK = false
+		result.Issues = append(result.Issues, fmt.Errorf(
+			"directory contains too few files, found %v but minimum is %v", count, chk.minFileCount))
+	}
+
+	if chk.maxFileCount > -1 && count > chk.maxFileCount {
+		result.IsOK = false
+		result.Issues = append(result.Issues, fmt.Errorf(
+			"directory contains too many files, found %v but maximum is %v", count, chk.maxFileCount))
 	}
 }
 
