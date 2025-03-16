@@ -39,17 +39,19 @@ type ConfRunner struct {
 
 // ConfCheckSpec is the spec for each check configuration
 type ConfCheckSpec struct {
-	Type    string
-	Path    string
-	Mode    *uint32
-	User    *string
-	Group   *string
-	MinSize int32  `yaml:"min_size"`
-	MaxSize *int64 `yaml:"max_size"`
-	Absent  bool
-	Network string
-	Address string
-	Timeout time.Duration
+	Type         string
+	Path         string
+	Mode         *uint32
+	User         *string
+	Group        *string
+	MinSize      int32  `yaml:"min_size"`
+	MaxSize      *int64 `yaml:"max_size"`
+	Absent       bool
+	Network      string
+	Address      string
+	Timeout      time.Duration
+	MinFileCount *int `yaml:"min_file_count"`
+	MaxFileCount *int `yaml:"max_file_count"`
 }
 
 // ReadConf reads the configuration file and returns a pointer to Conf struct

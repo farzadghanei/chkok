@@ -21,7 +21,7 @@ Released artifacts can be verified with the checksum file containing sha256 hash
     sha256sum -c chkok-*SHA256SUMS
 
 
-Or build and install from source (requires Go 1.22+):
+Or build and install from source (requires Go 1.24+):
 
 .. code-block:: shell
 
@@ -104,6 +104,10 @@ to be checked.
           path: /etc/group
           min_size: 5
           max_size: 10000
+        - type: dir
+          path: /var/log
+          min_file_count: 5  # Directory must contain at least 5 files
+          max_file_count: 100  # Directory must contain no more than 100 files
       default:
         - type: file
           path: /unwanted/file
@@ -120,7 +124,7 @@ See the `examples` directory for sample configuration files.
 Development
 -----------
 
-Make sure you have Go 1.22+ installed.
+Make sure you have Go 1.24+ installed.
 Most of the development and build tasks are automated with the `Makefile`.
 
 To build the binary from source, run:

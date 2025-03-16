@@ -18,3 +18,4 @@ vendor/
 tags
 *.swp
 .vscode
+.aider*

@@ -21,7 +21,7 @@ TIMESTAMP_MINUTE := $(shell date -u +%Y%m%d%H%M)
 # build
 OS ?= linux
 ARCH ?= amd64
-DIST ?= trixie  # go 1.22 is available in trixie
+DIST ?= trixie  # go 1.24 is available in trixie
 GOLDFLAGS ?= "-s"  # by default create a leaner binary
 GOARCH ?= amd64
 
@@ -146,7 +146,7 @@ pkg-tgz: build
 
 # override prefix so .rpm package installs binaries to /usr/bin instead of /usr/local/bin
 pkg-rpm: export prefix = /usr
-# requires golang compiler > 1.22, and rpm-build/rpmdevtools package
+# requires golang compiler > 1.24, and rpm-build/rpmdevtools package
 pkg-rpm:
 	mkdir -p $(RPM_DEV_TREE)/RPMS $(RPM_DEV_TREE)/SRPMS $(RPM_DEV_TREE)/SOURCES $(RPM_DEV_TREE)/SPECS
 	rm -f $(RPM_DEV_SRC_TGZ)

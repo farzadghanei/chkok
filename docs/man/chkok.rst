@@ -7,9 +7,9 @@ Check if file attributes are OK
 -------------------------------
 
 :Author: Farzad Ghanei
-:Date:   2024-05-16
+:Date:   2025-03-09
 :Copyright:  Copyright (c) 2024 Farzad Ghanei. chkok is an open source project released under the terms of the MIT license.
-:Version: 0.3.1
+:Version: 0.4.0
 :Manual section: 1
 :Manual group: General Command Manuals
 
@@ -81,6 +81,8 @@ to be checked.
           mode: 0755
           user: root
           group: root
+          # min_file_count: 1
+          # max_file_count: 100
         - type: file
           path: /etc/passwd
           min_size: 10

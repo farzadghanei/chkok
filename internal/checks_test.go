@@ -2,6 +2,8 @@ package chkok
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -157,6 +159,55 @@ func TestCheckFileDirectories(t *testing.T) {
 		t.Error("invalid check dir gid, want not ok got ok")
 	} else if len(got.Issues) != 1 || !strings.Contains(got.Issues[0].Error(), "group mismatch") {
 		t.Errorf("invalid check dir gid, want 1 issue got %v", got.Issues)
+	}
+}
+
+func TestCheckFileCount(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir, err := os.MkdirTemp("", "file-count-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp directory: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Create some test files
+	for i := 0; i < 5; i++ {
+		filename := filepath.Join(tempDir, fmt.Sprintf("file%d.txt", i))
+		if err := os.WriteFile(filename, []byte("test"), 0600); err != nil {
+			t.Fatalf("Failed to create test file: %v", err)
+		}
+	}
+
+	// Test cases
+	testCases := []struct {
+		name       string
+		minCount   int
+		maxCount   int
+		expectPass bool
+	}{
+		{"No constraints", -1, -1, true},
+		{"Min count satisfied", 3, -1, true},
+		{"Min count not satisfied", 10, -1, false},
+		{"Max count satisfied", -1, 10, true},
+		{"Max count not satisfied", -1, 3, false},
+		{"Both constraints satisfied", 3, 10, true},
+		{"Both constraints not satisfied", 10, 20, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			check := NewCheckFile(tempDir)
+			check.fileType = TypeDir
+			check.minFileCount = tc.minCount
+			check.maxFileCount = tc.maxCount
+
+			result := check.Run()
+
+			if result.IsOK != tc.expectPass {
+				t.Errorf("Expected IsOK=%v but got %v. Issues: %v",
+					tc.expectPass, result.IsOK, result.Issues)
+			}
+		})
 	}
 }
 

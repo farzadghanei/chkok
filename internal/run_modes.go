@@ -91,7 +91,7 @@ func RunModeHTTP(checkGroups *CheckSuites, conf *ConfRunner, logger *log.Logger)
 // makeHTTPRequestHandler creates a http request handler function used by RunModeHTTP
 func makeHTTPRequestHandler(reqHandlerChan chan *http.Request,
 	conf *ConfRunner, checkGroups *CheckSuites, logger *log.Logger) func(http.ResponseWriter, *http.Request) {
-	maxConcurrentRequests := int32(*conf.MaxConcurrentRequests)
+	maxConcurrentRequests := int32(*conf.MaxConcurrentRequests) //nolint: gosec
 	responseOK, responseFailed := *conf.ResponseOK, *conf.ResponseFailed
 	responseTimeout := *conf.ResponseTimeout
 	responseUnavailable, responseInvalidRequest := *conf.ResponseUnavailable, *conf.ResponseInvalidRequest

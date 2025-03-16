@@ -1,5 +1,5 @@
 Name: chkok
-Version: 0.3.1
+Version: 0.4.0
 Release: 1%{?dist}
 Summary: checks attributes of files and sockets
 
@@ -7,8 +7,8 @@ License: MIT
 URL: https://github.com/farzadghanei/chkok
 Source0: %{name}-%{version}.tar.gz
 
-# will use official golang tarballs instead, until go 1.22 rpm is in most repos
-# BuildRequires: golang > 1.22, golang-gopkg-yaml-3-devel > 3.0.0
+# will use official golang tarballs instead, until go 1.24 rpm is in most repos
+# BuildRequires: golang > 1.24, golang-gopkg-yaml-3-devel > 3.0.0
 
 %description
 "chkok" checks if attributes of files and sockets match the provided conditions to ensure
@@ -46,6 +46,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sun Mar 09 2025 Farzad Ghanei 0.4.0-1
+- Add new check to count files in a directory
+- Use go 1.24 for building
+- Update yaml dependency from v3.0.0 to v3.0.1
+
 * Sun Jun 16 2024 Farzad Ghanei 0.3.1-1
 - Add support for Debian packaging
 - Improve packaging

@@ -64,15 +64,24 @@ func CheckFileFromSpec(spec *ConfCheckSpec) (*CheckFile, error) {
 	if spec.User != nil {
 		id, err = getUID(*spec.User)
 		if err == nil {
-			check.uid = int32(id)
+			check.uid = int32(id) //nolint: gosec
 		}
 	}
 	if spec.Group != nil {
 		id, err = getGID(*spec.Group)
 		if err == nil {
-			check.gid = int32(id)
+			check.gid = int32(id) //nolint: gosec
 		}
 	}
+
+	// Set file count parameters if provided
+	if spec.MinFileCount != nil {
+		check.minFileCount = *spec.MinFileCount
+	}
+	if spec.MaxFileCount != nil {
+		check.maxFileCount = *spec.MaxFileCount
+	}
+
 	return check, err
 }
 

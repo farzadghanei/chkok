@@ -35,6 +35,8 @@ check_suites:
       mode: 0755
       user: root
       group: root
+      # min_file_count: 1
+      # max_file_count: 5
     - type: file
       path: /etc/passwd
       min_size: 10
