@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  tests-go-1.24:
+  tests-go-1_24:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -31,7 +31,7 @@ jobs:
       - name: Run tests
         run: go test -race -vet=off ./...
 
-  tests-go.126:
+  tests-go-1_26:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
