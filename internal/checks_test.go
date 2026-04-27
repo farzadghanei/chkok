@@ -168,7 +168,7 @@ func TestCheckFileCount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	// Create some test files
 	for i := 0; i < 5; i++ {

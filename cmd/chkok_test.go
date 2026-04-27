@@ -58,7 +58,7 @@ func TestRunHttp(t *testing.T) {
 		resp, err = http.DefaultClient.Do(req)
 		if err == nil && resp != nil { // server is up
 			body, err = io.ReadAll(io.Reader(resp.Body))
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			if err != nil {
 				t.Fatalf("Failed to read HTTP runner response body: %v", err)
 			}

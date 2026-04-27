@@ -1,6 +1,7 @@
 package chkok
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -9,7 +10,7 @@ import (
 	"time"
 )
 
-// Status is status of a given check (use Status* contants)
+// Status is status of a given check (use Status* constants)
 type Status uint8
 
 const (
@@ -23,7 +24,7 @@ const (
 	StatusDone
 )
 
-// FileType is the type of a file resources, use Type* contants
+// FileType is the type of a file resources, use Type* constants
 type FileType uint8
 
 const (
@@ -146,7 +147,7 @@ func (chk *CheckFile) Run() Result {
 		return chk.result
 	}
 
-	var fstat *syscall.Stat_t = finfo.Sys().(*syscall.Stat_t)
+	fstat := finfo.Sys().(*syscall.Stat_t)
 
 	switch chk.fileType {
 	case TypeDir:
@@ -176,7 +177,7 @@ func (chk *CheckFile) checkUIDGID(fstat *syscall.Stat_t, result *Result) {
 		if fstat == nil {
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("check for file owner is not supported on this system"))
-		} else if uint32(chk.uid) != fstat.Uid { //nolint: gosec
+		} else if uint32(chk.uid) != fstat.Uid {
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("owner mismatch. want %v got %v", chk.uid, fstat.Uid))
 		}
@@ -186,7 +187,7 @@ func (chk *CheckFile) checkUIDGID(fstat *syscall.Stat_t, result *Result) {
 		if fstat == nil {
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("check for file group is not supported on this system"))
-		} else if uint32(chk.gid) != fstat.Gid { //nolint: gosec
+		} else if uint32(chk.gid) != fstat.Gid {
 			result.IsOK = false
 			result.Issues = append(result.Issues, fmt.Errorf("group mismatch. want %v got %v", chk.gid, fstat.Gid))
 		}
@@ -284,7 +285,8 @@ func (chk *CheckDial) Run() Result {
 
 	start := time.Now()
 	chk.result = Result{IsOK: true, Issues: []error{}}
-	conn, err := net.DialTimeout(chk.Network, chk.Address, chk.timeout)
+	dialer := net.Dialer{Timeout: chk.timeout}
+	conn, err := dialer.DialContext(context.Background(), chk.Network, chk.Address)
 	if err != nil { // no connection
 		if chk.Absent {
 			chk.status = StatusDone
@@ -295,7 +297,7 @@ func (chk *CheckDial) Run() Result {
 		chk.status = StatusDone
 		return chk.result
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 	elapsed := time.Since(start)
 	if elapsed > chk.timeout {
 		chk.status = StatusStopped

@@ -57,7 +57,7 @@ type ConfCheckSpec struct {
 // ReadConf reads the configuration file and returns a pointer to Conf struct
 func ReadConf(path string) (*Conf, error) {
 	var conf Conf
-	contents, err := os.ReadFile(path)
+	contents, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		return &conf, err
 	}
@@ -67,11 +67,11 @@ func ReadConf(path string) (*Conf, error) {
 
 // GetBaseConfRunner returns a base ConfRunner with default literal values
 func GetBaseConfRunner() ConfRunner {
-	var timeout, readTimeout, writeTimout time.Duration = 5 * time.Minute, 30 * time.Second, 30 * time.Second
-	var maxHeaderBytes int = 8 * 1024
-	var MaxConcurrentRequests int = 1
-	var respOK, respFailed, respTimeout string = "OK", "FAILED", "TIMEOUT"
-	var respUnavailable, respInvalidRequest string = "UNAVAILABLE", "INVALID REQUEST"
+	timeout, readTimeout, writeTimout := 5*time.Minute, 30*time.Second, 30*time.Second
+	maxHeaderBytes := 8 * 1024
+	MaxConcurrentRequests := 1
+	respOK, respFailed, respTimeout := "OK", "FAILED", "TIMEOUT"
+	respUnavailable, respInvalidRequest := "UNAVAILABLE", "INVALID REQUEST"
 
 	baseConf := ConfRunner{
 		Timeout:                &timeout,

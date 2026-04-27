@@ -21,14 +21,14 @@ func RunModeCLI(checkGroups *CheckSuites, conf *ConfRunner, output io.Writer, lo
 	passed, failed, timedout := runChecks(&runner, checkGroups, logger)
 	total := passed + failed + timedout
 	if timedout > 0 {
-		fmt.Fprintf(output, "%v/%v checks timedout", timedout, total)
+		_, _ = fmt.Fprintf(output, "%v/%v checks timedout", timedout, total)
 		return ExTempFail
 	}
 	if failed > 0 {
-		fmt.Fprintf(output, "%v/%v checks failed", failed, total)
+		_, _ = fmt.Fprintf(output, "%v/%v checks failed", failed, total)
 		return ExSoftware
 	}
-	fmt.Fprintf(output, "%v checks passed", total)
+	_, _ = fmt.Fprintf(output, "%v checks passed", total)
 	return ExOK
 }
 
@@ -106,7 +106,7 @@ func makeHTTPRequestHandler(reqHandlerChan chan *http.Request,
 		if maxConcurrentRequests > 0 && runningRequests.Load() > maxConcurrentRequests {
 			logger.Printf("runner reached max conccurent requests. rejecting request: %s", httpRequestAsString(r))
 			w.WriteHeader(http.StatusServiceUnavailable) // 503
-			fmt.Fprint(w, responseUnavailable)
+			_, _ = fmt.Fprint(w, responseUnavailable)
 			return
 		}
 		defer runningRequests.Add(-1)
@@ -116,13 +116,13 @@ func makeHTTPRequestHandler(reqHandlerChan chan *http.Request,
 				if !ok {
 					logger.Printf("http request missing required header %s: %s", header, httpRequestAsString(r))
 					w.WriteHeader(http.StatusBadRequest) // 400
-					fmt.Print(w, responseInvalidRequest)
+					_, _ = fmt.Fprint(w, responseInvalidRequest)
 					return
 				}
 				if value != "" && reqHeader[0] != value {
 					logger.Printf("http request doesn't match required header %s: %s", header, httpRequestAsString(r))
 					w.WriteHeader(http.StatusBadRequest) // 400
-					fmt.Print(w, responseInvalidRequest)
+					_, _ = fmt.Fprint(w, responseInvalidRequest)
 					return
 				}
 			}
@@ -132,13 +132,13 @@ func makeHTTPRequestHandler(reqHandlerChan chan *http.Request,
 		_, failed, timedout := runChecks(&runner, checkGroups, logger)
 		if timedout > 0 {
 			w.WriteHeader(http.StatusGatewayTimeout) // 504
-			fmt.Fprint(w, responseTimeout)
+			_, _ = fmt.Fprint(w, responseTimeout)
 		} else if failed > 0 {
 			w.WriteHeader(http.StatusInternalServerError) // 500
-			fmt.Fprint(w, responseFailed)
+			_, _ = fmt.Fprint(w, responseFailed)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprint(w, responseOK)
+			_, _ = fmt.Fprint(w, responseOK)
 		}
 		reqHandlerChan <- r
 	}
