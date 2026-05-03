@@ -1,5 +1,6 @@
 ---
 # https://golangci-lint.run/usage/configuration/
+version: "2"
 
 run:
   timeout: 5m
@@ -7,7 +8,7 @@ run:
 
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
     - depguard
@@ -19,12 +20,9 @@ linters:
     - gochecknoinits
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
     - mnd
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
@@ -33,75 +31,77 @@ linters:
     - noctx
     - nolintlint
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
 
-issues:
-  exclude-rules:
-    - path: '(.+)_test\.go'
-      linters:
-        - dupl
-
-
-linters-settings:
-  dupl:
-    threshold: 100
-  funlen:
-    lines: 100
-    statements: 50
-  goconst:
-    min-len: 2
-    min-occurrences: 3
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport  # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
-  gocyclo:
-    min-complexity: 15
-  mnd:
-    # don't include the "operation" and "assign"
-    checks:
-      - argument
-      - case
-      - condition
-      - return
-    ignored-numbers:
-      - '0'
-      - '1'
-      - '2'
-      - '3'
-    ignored-functions:
-      - strings.SplitN
-  lll:
-    line-length: 120
-  misspell:
-    locale: US
-  depguard:
+  exclusions:
     rules:
-      main:
-        # Used to determine the package matching priority.
-        # There are three different modes: `original`, `strict`, and `lax`.
-        # Default: "original"
-        list-mode: original
-        # File globs that will match this list of settings to compare against.
-        # Default: $all
-        files:
-          - "$all"
-        # List of allowed packages.
-        allow:
-          - $gostd
-          - github.com/farzadghanei/chkok
-          - gopkg.in/yaml.v3
+      - path: '_test\.go'
+        linters:
+          - dupl
+
+  settings:
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 100
+      statements: 50
+    goconst:
+      min-len: 2
+      min-occurrences: 3
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+      disabled-checks:
+        - dupImport  # https://github.com/go-critic/go-critic/issues/845
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+        - wrapperFunc
+    gocyclo:
+      min-complexity: 15
+    mnd:
+      # don't include the "operation" and "assign"
+      checks:
+        - argument
+        - case
+        - condition
+        - return
+      ignored-numbers:
+        - '0'
+        - '1'
+        - '2'
+        - '3'
+      ignored-functions:
+        - strings.SplitN
+    lll:
+      line-length: 120
+    misspell:
+      locale: US
+    depguard:
+      rules:
+        main:
+          # Used to determine the package matching priority.
+          # There are three different modes: `original`, `strict`, and `lax`.
+          # Default: "original"
+          list-mode: original
+          # File globs that will match this list of settings to compare against.
+          # Default: $all
+          files:
+            - "$all"
+          # List of allowed packages.
+          allow:
+            - $gostd
+            - github.com/farzadghanei/chkok
+            - gopkg.in/yaml.v3
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

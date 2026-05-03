@@ -37,12 +37,12 @@ func run(confPath, mode string, output io.Writer, verbose bool) int {
 
 	conf, err := chkok.ReadConf(confPath)
 	if err != nil {
-		fmt.Fprintf(output, "couldn't read YAML configuration file: %v", err)
+		_, _ = fmt.Fprintf(output, "couldn't read YAML configuration file: %v", err)
 		return chkok.ExDataErr
 	}
 	checkGroups, err := chkok.CheckSuitesFromSpecSuites(conf.CheckSuites)
 	if err != nil {
-		fmt.Fprintf(output, "invalid configurations: %v", err)
+		_, _ = fmt.Fprintf(output, "invalid configurations: %v", err)
 		return chkok.ExConfig
 	}
 	runnerConf, _ := chkok.GetConfRunner(&conf.Runners, mode)

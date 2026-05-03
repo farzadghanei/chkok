@@ -140,8 +140,8 @@ func TestGetDefaultConfRunner(t *testing.T) {
 
 func TestGetConfRunner(t *testing.T) {
 	var shutdownSignalHeader = "Test-Shutdown"
-	var fiveSecond, tenSecond time.Duration = 5 * time.Second, 10 * time.Second
-	var ok, failed, timeout string = "OK", "FAILED", "TIMEOUT"
+	var fiveSecond, tenSecond = 5 * time.Second, 10 * time.Second
+	var ok, failed, timeout = "OK", "FAILED", "TIMEOUT"
 
 	runners := ConfRunners{
 		"default": ConfRunner{
@@ -241,9 +241,9 @@ func TestGetConfRunnerAllowOverridesWithZeroValue(t *testing.T) {
 	wantResponseOK := ""
 	wantResponseFailed := ""
 	wantResponseTimeout := ""
-	var ok, failed, timeout string = "OK", "FAILED", "TIMEOUT"
+	var ok, failed, timeout = "OK", "FAILED", "TIMEOUT"
 
-	var fiveSecond, tenSecond time.Duration = 5 * time.Second, 10 * time.Second
+	var fiveSecond, tenSecond = 5 * time.Second, 10 * time.Second
 
 	runners := ConfRunners{
 		"default": ConfRunner{
